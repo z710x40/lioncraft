@@ -40,7 +40,7 @@ public class DbConnector {
 	
 	public void makeWorld() {
 
-		OpenSimplexNoise noise = new OpenSimplexNoise();
+		/*OpenSimplexNoise noise = new OpenSimplexNoise();
 		for (int z = 0; z < HEIGHT; z++)
 		{
 			for (int x = 0; x < WIDTH; x++)
@@ -59,7 +59,7 @@ public class DbConnector {
 				blockdb.put(ID,new Block(ChunkID,x,y,z,BlockType.TESTBLOCK));
 			}
 			System.out.print(System.lineSeparator());
-		} 
+		} */
 		
 		
 		for(int z=0;z<100;z++)
