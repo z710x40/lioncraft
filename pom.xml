@@ -1,0 +1,138 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.sande</groupId>
+	<artifactId>lioncraft</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<properties>
+		<jme3_g>org.jmonkeyengine</jme3_g>
+		<jme3_v>3.2.0-stable</jme3_v>
+
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<url>http://jcenter.bintray.com</url>
+		</repository>
+	</repositories>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-core</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-desktop</artifactId>
+			<version>${jme3_v}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-lwjgl</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-plugins</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-niftygui</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+	<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-blender</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+	<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-bullet</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>	
+
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.sande.lioncraft</mainClass>
+							<classpathPrefix>dependency-jars/</classpathPrefix>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<resources>
+						<resource>
+							<directory>${basedir}/src/main/resources</directory>
+						</resource>
+
+					</resources>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<!-- exclude junit, we need runtime dependency only -->
+							<includeScope>runtime</includeScope>
+							<outputDirectory>${project.build.directory}/dependency-jars/</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>${fully.qualified.main.class}</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>
