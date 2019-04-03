@@ -14,7 +14,7 @@ public class BlockManager {
 	TestBlock testBlock=new TestBlock();
 	ComputerFloor computerFloor=new ComputerFloor();
 	ServerBlock serverBlock=new ServerBlock();
-	
+	LetterBlock letterBlock=new LetterBlock();
 	
 	private BlockManager() {
 		
@@ -33,6 +33,7 @@ public class BlockManager {
 		case LETTERC:		return testBlock.getBlock();
 		case LETTERD:		return testBlock.getBlock();
 		case LETTERE:		return testBlock.getBlock();
+		case LETTERBLOCK:	return letterBlock.getBlock();
 					
 		}
 		
@@ -61,6 +62,7 @@ public class BlockManager {
 		if(reuseBlock.getName().equals("ServerBlock"))serverBlock.popBlock(reuseBlock);
 		if(reuseBlock.getName().equals("ComputerFloor"))computerFloor.popBlock(reuseBlock);
 		if(reuseBlock.getName().equals("TestBlock"))testBlock.popBlock(reuseBlock);
+		if(reuseBlock.getName().equals("LetterBlock"))testBlock.popBlock(reuseBlock);
 	}
 	
 	
