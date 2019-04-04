@@ -156,6 +156,7 @@ public class LetterBlock extends BasicBlock {
 	    	charsToWrite++;
 	    	if(subtotal>imageSize)
 	    	{
+	    		tel--;
 	    		g2d.drawChars(textList, offset, charsToWrite, 0, height);
 	    		subtotal=0;
 	    		charsToWrite=0;

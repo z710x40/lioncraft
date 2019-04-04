@@ -74,7 +74,7 @@ public class DbConnector {
 			String ChunkID=new StringBuilder().append(chunkPosX).append('X').append(chunkPosZ).toString();
 		
 			
-			blockdb.put(ID,new Block(ChunkID,x,1,z,BlockType.TESTBLOCK));
+			blockdb.put(ID,new Block(ChunkID,x,1,z,BlockType.BRICKBLOCK));
 		}
 		
 		for(int x=0;x<100;x++)

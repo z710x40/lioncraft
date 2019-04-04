@@ -10,7 +10,8 @@ public enum BlockType {
 	LETTERC(67),
 	LETTERD(68),
 	LETTERE(69),
-	LETTERBLOCK(70);
+	LETTERBLOCK(70), 
+	BRICKBLOCK(71);
 
 	
 	private int id;

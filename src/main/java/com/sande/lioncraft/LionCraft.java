@@ -20,7 +20,9 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.jme3.util.SkyFactory;
 import com.sande.lioncraft.dbconnector.DbConnector;
 import com.sande.lioncraft.storage.Chunk;
 import com.sande.lioncraft.storage.VisibleChunkField;
@@ -46,6 +48,7 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 	private Vector3f camDir = new Vector3f();
 	private Vector3f camLeft = new Vector3f();
 	
+	private Spatial defaultSky; 		// Pointer naar de skybox
 	
 	public LionCraft() {
 		// TODO Auto-generated constructor stub
@@ -131,6 +134,18 @@ public class LionCraft extends SimpleApplication implements ActionListener{
     
         bulletAppState.getPhysicsSpace().add(player);
         //bulletAppState.setDebugEnabled(true);
+        
+        
+     // Zet een standaard achtergrond lucht
+        defaultSky = SkyFactory.createSky(assetManager,
+        								  assetManager.loadTexture("background/daylight/DaylightBox_Right.bmp"),
+        								  assetManager.loadTexture("background/daylight/DaylightBox_Left.bmp"), 
+        								  assetManager.loadTexture("background/daylight/DaylightBox_Back.bmp"),
+                						  assetManager.loadTexture("background/daylight/DaylightBox_Front.bmp"), 
+                						  assetManager.loadTexture("background/daylight/DaylightBox_Top.bmp"), 
+                						  assetManager.loadTexture("background/daylight/DaylightBox_Bottom.bmp"));
+     	getRootNode().attachChild(defaultSky);
+        
         
         visibleChunkField=new VisibleChunkField(rootNode);
         visibleChunkField.updateChunkField(0, 0);
