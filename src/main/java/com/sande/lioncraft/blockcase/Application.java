@@ -11,7 +11,7 @@ import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 import com.sande.lioncraft.Globals;
 
-public class BrickBlock extends BasicBlock {
+public class Application extends BasicBlock {
 
 
 	private Random randje=new Random();
@@ -20,7 +20,7 @@ public class BrickBlock extends BasicBlock {
 	protected Geometry creatBlock()
 	{
 		Box box = new Box(Globals.BLOCKRADIUS,Globals.BLOCKRADIUS,Globals.BLOCKRADIUS);
-		Geometry cubeSpatial = new Geometry("BrickBlock", box);	
+		Geometry cubeSpatial = new Geometry("ApplicationBlock", box);	
 		
 		Material material = new Material(Globals.assetmanager, "Common/MatDefs/Misc/Unshaded.j3md");
 		material.setTexture("ColorMap",loadTexture());
@@ -41,16 +41,16 @@ public class BrickBlock extends BasicBlock {
 	@Override
 	protected String stats() {
 		
-		return new StringBuilder().append("C ").append(created).append(" U ").append(reused).append("  R ").append(returned).append("  ServerBlock").toString();
+		return new StringBuilder().append("C ").append(created).append(" U ").append(reused).append("  R ").append(returned).append("  ApplicationBlock").toString();
 	}
 	
 	private static Texture loadTexture() {
 		Texture nodeTexture=null;
 		try{
-			nodeTexture=Globals.assetmanager.loadTexture("block_images/brickblock.jpg");
+			nodeTexture=Globals.assetmanager.loadTexture("block_images/serverblock.png");
 		}
 		catch (AssetNotFoundException e){
-			System.out.println("Could not find asset block_images/brickblock.jpg");
+			System.out.println("Could not find asset block_images/serverblock.png");
 		}
 		return nodeTexture;
 	}

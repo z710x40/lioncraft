@@ -1,4 +1,4 @@
-package com.sande.lioncraft.landscape;
+package lioncraftserver.tools;
 
 /*
  * OpenSimplex Noise in Java.

@@ -21,7 +21,7 @@ import com.jme3.texture.plugins.AWTLoader;
 import com.sande.lioncraft.Globals;
 import com.sun.prism.TextureMap;
 
-public class LetterBlock extends BasicBlock {
+public class TextBlock extends BasicBlock {
 
 
 	private Random randje=new Random();

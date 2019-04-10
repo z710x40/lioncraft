@@ -9,7 +9,7 @@ import com.sande.lioncraft.dbconnector.DbConnector;
 
 public class Globals {
 
-	public final static float    BLOCKRADIUS=1f;						// Straal van een block, alleen voor create block
+	public final static float    BLOCKRADIUS=0.5f;						// Straal van een block, alleen voor create block
 	public final static float    BLOCKSIZE=BLOCKRADIUS*2;				// De ribbe van een block, puur voor transformatie
 	public final static int      chunkblocks=9;							// Aantal blokken in de chunk ribbe
 	public final static int      chunkheigth=64;						// Hoogte in blokken

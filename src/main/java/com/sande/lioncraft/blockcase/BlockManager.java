@@ -14,28 +14,23 @@ public class BlockManager {
 	TestBlock testBlock=new TestBlock();
 	ComputerFloor computerFloor=new ComputerFloor();
 	ServerBlock serverBlock=new ServerBlock();
-	LetterBlock letterBlock=new LetterBlock();
-	BrickBlock brickBlock=new BrickBlock();
+	TextBlock letterBlock=new TextBlock();
+	Brick brickBlock=new Brick();
 	
 	private BlockManager() {
 		
 	}
 
-	public Geometry getBlock(BlockType blockType)
+	public Geometry getBlock(int blockType)
 	{
 		switch(blockType)
 		{
 
-		case TESTBLOCK:		return testBlock.getBlock();
-		case COMPUTERFLOOR:	return computerFloor.getBlock();
-		case SERVERBLOCK:	return serverBlock.getBlock();
-		case LETTERA:		return testBlock.getBlock();
-		case LETTERB:		return testBlock.getBlock();
-		case LETTERC:		return testBlock.getBlock();
-		case LETTERD:		return testBlock.getBlock();
-		case LETTERE:		return testBlock.getBlock();
-		case LETTERBLOCK:	return letterBlock.getBlock();
-		case BRICKBLOCK:	return brickBlock.getBlock();
+		case Btype.TESTBLOCK:		return testBlock.getBlock();
+		case Btype.COMPUTERFLOOR:	return computerFloor.getBlock();
+		case Btype.SERVERBLOCK:	return serverBlock.getBlock();
+		case Btype.TEXTBLOCK:	return letterBlock.getBlock();
+		case Btype.BRICK:	return brickBlock.getBlock();
 					
 		}
 		

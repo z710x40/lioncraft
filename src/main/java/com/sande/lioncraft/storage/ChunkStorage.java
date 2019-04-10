@@ -1,18 +1,33 @@
-package com.sande.lioncraft.landscape;
+package com.sande.lioncraft.storage;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sande.lioncraft.storage.Chunk;
+
+import com.sande.lioncraft.network.NetworkConnector;
+
+import lioncraftserver.comobjects.Chunk;
+
 
 
 public class ChunkStorage {
 
 	
+	private static ChunkStorage instance;
+	
 	Map<String,Chunk> chunkDB=new HashMap<>();
 	
-	public ChunkStorage() {
-		
+	private ChunkStorage() {
+		//nwConnector=NetworkConnector.getConnector();	// Init de connector
+	}
+	
+	public static ChunkStorage getChunkStorage()
+	{
+		if(instance==null)
+		{
+			instance=new ChunkStorage();
+		}
+		return instance;
 	}
 	
 	
@@ -27,7 +42,6 @@ public class ChunkStorage {
 		
 		if(chunkDB.containsKey(chunkID))
 		{
-			//System.out.println("Bestaande chunk "+chunkID);
 			return chunkDB.get(chunkID);
 		}
 		
@@ -37,7 +51,7 @@ public class ChunkStorage {
 		int z=Integer.parseInt(coords[1]);
 		
 		Chunk newChunk=new Chunk(x,z);
-		newChunk.RandomFill();
+		//newChunk.RandomFill();
 		
 		add(newChunk);
 		

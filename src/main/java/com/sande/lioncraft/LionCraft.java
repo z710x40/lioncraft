@@ -24,7 +24,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.util.SkyFactory;
 import com.sande.lioncraft.dbconnector.DbConnector;
-import com.sande.lioncraft.storage.Chunk;
+import com.sande.lioncraft.network.NetworkConnector;
+import com.sande.lioncraft.storage.ChunkOrg;
 import com.sande.lioncraft.storage.VisibleChunkField;
 
 
@@ -32,7 +33,7 @@ import com.sande.lioncraft.storage.VisibleChunkField;
 public class LionCraft extends SimpleApplication implements ActionListener{
 
 	
-	HashMap<String,Chunk> visualChunks=new HashMap<>();
+	HashMap<String,ChunkOrg> visualChunks=new HashMap<>();
 
 	String currentChunkID="";
 	
@@ -51,20 +52,34 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 	private Spatial defaultSky; 		// Pointer naar de skybox
 	
 	public LionCraft() {
-		// TODO Auto-generated constructor stub
+		
 	}
+	
+	
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
 		LionCraft lioncraft=new LionCraft();
+		lioncraft.init();
 		lioncraft.start();
 	}
+
+	
+	private void init() {
+		NetworkConnector nwConnector=NetworkConnector.getConnector();
+		if(!nwConnector.connect("192.168.178.21", 2016))
+			{
+			 System.out.println("Cannot connect to the lioncraft server");;
+			};
+	}
+
+
 
 	@Override
 	public void simpleInitApp() {
 		// TODO Auto-generated method stub
-		
+		System.out.println("Init graphical engine");
 		Globals.assetmanager=this.assetManager;
 		flyCam.setMoveSpeed(50);
 		initKeys();
@@ -145,10 +160,13 @@ public class LionCraft extends SimpleApplication implements ActionListener{
                 						  assetManager.loadTexture("background/daylight/DaylightBox_Top.bmp"), 
                 						  assetManager.loadTexture("background/daylight/DaylightBox_Bottom.bmp"));
      	getRootNode().attachChild(defaultSky);
-        
+     	System.out.println("Init done, ready to place the first block");
         
         visibleChunkField=new VisibleChunkField(rootNode);
-        visibleChunkField.updateChunkField(0, 0);
+        for(int tel=0;tel<20;tel++)
+        {
+        	if(visibleChunkField.updateChunkField(0, 0))continue;
+        }
 	}
 	
 	
@@ -165,6 +183,7 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 		
 		// Update de chunk field
 		visibleChunkField.updateChunkField(chunkPosX, chunkPosZ);
+		
 		chunkInfoText.setText(new StringBuilder().append("Chunk ").append(chunkPosX).append('X').append(chunkPosZ).toString());
 		locationInfoText.setText(new StringBuilder().append("location X:").append(campos.x).append(" Z:").append(campos.z).toString());
 		//System.out.println(" "+campos.x+ " "+campos.z);
@@ -249,9 +268,11 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 	        Ray ray = new Ray(cam.getLocation(), cam.getDirection());
 	        rootNode.collideWith(ray, results);
 	        CollisionResult closest = results.getClosestCollision();
-	        Geometry target=closest.getGeometry();
-	        
-	        System.out.println(" Node "+target.getName());
+	        if(closest!=null)
+	        {
+	        	Geometry target=closest.getGeometry();
+	        	System.out.println(" Node "+target.getName()+" chunk "+target.getUserData("chunkid"));
+	        }
 	        
 		}
 		

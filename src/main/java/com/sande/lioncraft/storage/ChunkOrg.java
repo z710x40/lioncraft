@@ -12,12 +12,15 @@ import com.jme3.scene.Spatial;
 import com.sande.lioncraft.Globals;
 import com.sande.lioncraft.blockcase.BlockManager;
 import com.sande.lioncraft.blockcase.BlockType;
-import com.sande.lioncraft.dbconnector.Block;
+import com.sande.lioncraft.blockcase.Btype;
+
+import lioncraftserver.comobjects.Block;
+
 
 
 
 // Een chunk is een verzamelink Blocken met een positie en ID, niks meer dan dat;
-public class Chunk {
+public class ChunkOrg {
 
 	
 	BlockManager blockManager=BlockManager.GetBlockManager();
@@ -35,7 +38,7 @@ public class Chunk {
 		
 
 	
-	public Chunk(int x,int z) {
+	public ChunkOrg(int x,int z) {
 		
 		Chunkid=new StringBuilder().append(x).append('X').append(z).toString();
 		
@@ -96,7 +99,7 @@ public class Chunk {
 		//int heigth=1;
 		
 		
-		blockList.add(new Block(this.Chunkid,0,0,0,BlockType.COMPUTERFLOOR));
+		blockList.add(new Block(0,0,0,Btype.COMPUTERFLOOR));
 
 		for(int x=0;x<Globals.chunkblocks-3;x++)
 		{
@@ -106,8 +109,8 @@ public class Chunk {
 				for(int y=1;y<heigth;y++)
 				{
 					
-					if(y==0)blockList.add(new Block(this.Chunkid,x,y,z,BlockType.COMPUTERFLOOR));
-					else blockList.add(new Block(this.Chunkid,x,y,z,BlockType.SERVERBLOCK));
+					if(y==0)blockList.add(new Block(x,y,z,Btype.COMPUTERFLOOR));
+					else blockList.add(new Block(x,y,z,Btype.SERVERBLOCK));
 				}
 			}
 		}
@@ -128,25 +131,11 @@ public class Chunk {
 		//blockList.add(new Block(this.Chunkid,0,1,0,BlockType.TESTBLOCK));
 		//blockList.add(new Block(this.Chunkid,4,1,4,BlockType.TESTBLOCK));
 		
-		blockList.add(new Block(this.Chunkid,x,0,z,BlockType.COMPUTERFLOOR));
+		blockList.add(new Block(x,0,z,Btype.COMPUTERFLOOR));
 	}
 
 
-	// Maak de node met de blocken vertaald naar Geometries
-	public Spatial place() {
-		
-		for(Block block:blockList)
-		{
-			Geometry newBLock = blockManager.getBlock(block.getType());
-			newBLock.setLocalTranslation((block.getX() * Globals.BLOCKSIZE), block.getY() * Globals.BLOCKSIZE,(block.getZ() * Globals.BLOCKSIZE));
-			//newBLock.setName(new StringBuilder().append(Chunkid).append(';').append(block.getX()).append('x').append(block.getY()).append('x').append(block.getZ()).toString());
-			
-			geometrykList.add(newBLock);
-			chunkNode.attachChild(newBLock);
-		}
-		
-		return chunkNode;
-	}
+	
 
 
 	public Object makeCollision() {

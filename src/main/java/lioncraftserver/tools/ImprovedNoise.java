@@ -1,4 +1,4 @@
-package com.sande.lioncraft.landscape;
+package lioncraftserver.tools;
 
 public final class ImprovedNoise {
 	
