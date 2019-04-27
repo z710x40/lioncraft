@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty>
+	<screen id="start" controller="jme3test.niftygui.TestNiftyGui">
+
+		<layer id="layer" childLayout="center">
+			<panel width="100%" height="10%" valign="bottom" childLayout="absolute"
+				backgroundImage="interface/images/stoneplate.png" padding="10px">
+
+				<panel backgroundColor="#1008" childLayout="center" x="2%" y="2%" width="16%" height="80%">
+					<text id="msg" font="aurulent-sans-16.fnt" color="#f00f"
+						text="hallo allemaal" />
+				</panel>
+
+
+				<panel backgroundColor="#2008" childLayout="center" x="22%" y="2%" width="8%" height="80%">
+					<text id="blockname" font="aurulent-sans-16.fnt" color="#f00f" text="blockname" />
+
+				</panel>
+				<panel backgroundColor="#3018" childLayout="center" x="32%" y="2%" width="8%" height="80%">
+
+				</panel>
+				<panel  backgroundColor="#4028" childLayout="center" x="42%" y="2%" width="8%" height="80%">
+
+				</panel>
+				<panel backgroundColor="#5038" childLayout="center" x="52%" y="2%" width="8%" height="80%">
+
+				</panel>
+				<panel backgroundColor="#6048" childLayout="center" x="62%" y="2%" width="8%" height="80%">
+
+				</panel>
+				<panel backgroundColor="#7058" childLayout="center" x="72%" y="2%" width="8%" height="80%">
+
+				</panel>
+				<panel backgroundColor="#8068" childLayout="center" x="82%" y="2%" width="8%" height="80%">
+
+				</panel>
+				<panel backgroundColor="#9078" childLayout="center" x="92%" y="2%" width="8%" height="80%">
+
+				</panel>
+			</panel>
+
+
+		</layer>
+
+	</screen>
+	<screen id="end">
+	</screen>
+</nifty>

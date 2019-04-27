@@ -41,5 +41,25 @@ public class WorldGenerator {
 		}
 		System.out.println("Finished generate Random Word");
 	}
+	
+	
+	public void testWorld()
+	{
+		addBlock(0,1,0,Btype.TESTBLOCK);
+		addBlock(0,1,2,Btype.BRICK);
+		addBlock(0,1,4,Btype.APPLICATION);
+		addBlock(0,1,8,Btype.MIDDLEWARE);
+		addBlock(0,1,9,Btype.RACK);
+		addBlock(0,1,11,Btype.SOFTWARE);
+		addBlock(0,1,11,Btype.SIGNAL);
+								
+	}
+	
+	private void addBlock(int x, int y, int z,int blocktype)
+	{
+		Block block=new Block(x,y,z,blocktype);
+		Chunk chunk=chunkStorage.getChunk(Tools.getChunkId(x, z));
+		chunk.addBlock(block);
+	}
 
 }

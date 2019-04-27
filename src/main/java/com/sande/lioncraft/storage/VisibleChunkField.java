@@ -9,16 +9,19 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.sande.lioncraft.Globals;
 import com.sande.lioncraft.blockcase.BlockManager;
+import com.sande.lioncraft.blockcase.BlockType;
 import com.sande.lioncraft.network.NetworkConnector;
 
 import lioncraftserver.comobjects.Chunk;
 import lioncraftserver.comobjects.ChunkListRecord;
 import lioncraftserver.comobjects.RequestRecord;
+import lioncraftserver.tools.Tools;
 
 // Deze class verzorgt de zichtbare chunks
 public class VisibleChunkField {
@@ -34,6 +37,7 @@ public class VisibleChunkField {
 	NetworkConnector nwConnector;
 	BlockManager blockManager=BlockManager.GetBlockManager();
 	Node rootNode;
+	RequestRecord reqRec=new RequestRecord();
 	
 	
 	int visible;
@@ -121,7 +125,13 @@ public class VisibleChunkField {
 		//chunksToAdd.forEach(chunkID -> rootNode.attachChild(chunkcStorage.getChunk(chunkID).place()));
 		RequestRecord rq=RequestRecord.builder().withRequesttype(1).withChunkids(chunksToAdd).build();	// Maar een request record aan
 		nwConnector.writeRecord(rq);																	// Stuur deze naar de server
-		ChunkListRecord chunkToList=nwConnector.readChunkListRecord();
+		
+		ChunkListRecord chunkToList=null;
+		Object record=nwConnector.readRecord();
+		if(record instanceof ChunkListRecord)
+		{
+			chunkToList=(ChunkListRecord)record;
+		}
 		if(chunkToList!=null)
 		{
 			chunkToList.list.forEach(chunk -> this.buildChunk(chunk));
@@ -215,6 +225,22 @@ public class VisibleChunkField {
 			block.addControl(rigidBodyControl);
 			Globals.bulletAppState.getPhysicsSpace().add(rigidBodyControl);
 		
+	}
+
+
+	public void addNewBlock(Vector3f hitPoint) {
+		int x=(int)(hitPoint.getX()+0.5f);
+		int y=(int)(hitPoint.getY()+1);
+		int z=(int)(hitPoint.getZ()+0.5f);
+		Geometry newBlock = blockManager.getBlock(BlockType.BRICKBLOCK.getID());
+		newBlock.setUserData("chunkid", Tools.getChunkId(x,z));
+		newBlock.setLocalTranslation(x,y,z);
+		rootNode.attachChild(newBlock);
+		System.out.println("block added at x:"+x+" y:"+y+" z:"+z);
+		reqRec.setRequesttype(2);
+		reqRec.setBlockid(Tools.getBlockId(x, y, z));
+		reqRec.setBlockType(BlockType.BRICKBLOCK.getID());
+		nwConnector.writeRecord(reqRec);
 	}
 	
 }

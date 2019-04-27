@@ -15,13 +15,21 @@ public enum BlockType {
 
 	
 	private int id;
+	private static int number=0;
 
 	BlockType(int id){
 	    this.id = id;
 	  }
 
-	  public int getID(){
+	public int getID(){
 	    return id;
 	  }
+	  
+	public static BlockType next()
+	{
+		number=number+1;
+		if(number>=BlockType.values().length)number=0;
+		return BlockType.values()[number];
+	}
 
 }

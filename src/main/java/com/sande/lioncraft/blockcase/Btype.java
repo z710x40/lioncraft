@@ -7,12 +7,12 @@ public class Btype {
 	public final static int SERVERBLOCK=102;
 	public final static int TEXTBLOCK=103;
 	public final static int BRICK=104;
-	public final static int SIGNAL=104;
-	public final static int SOFTWARE=104;
-	public final static int DATABASE=104;
-	public final static int MIDDLEWARE=104;
-	public final static int RACK=104;
-	public final static int APPLICATION=104;
+	public final static int SIGNAL=105;
+	public final static int SOFTWARE=106;
+	public final static int DATABASE=107;
+	public final static int MIDDLEWARE=108;
+	public final static int RACK=109;
+	public final static int APPLICATION=110;
 	
 	
 }

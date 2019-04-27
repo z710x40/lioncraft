@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import lioncraftserver.comobjects.ChunkListRecord;
+import lioncraftserver.comobjects.PreRecord;
 import lioncraftserver.comobjects.RequestRecord;
 
 public class NetworkConnector {
@@ -105,12 +106,13 @@ public class NetworkConnector {
 	public ChunkListRecord readChunkListRecord() {
 		//System.out.println("Read chunklist");
 		ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
-		
+		int total=0;
 		try {
 			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
 			while(timeOutRead(inBuffer,20)!=0)											// Loop zolang er data is
 			{
 				//System.out.println("readed bytes "+inBuffer.limit());
+				total+=inBuffer.limit();
 				baos.write(inBuffer.array());											// Schrijf de data naar de outputbuffer
 				inBuffer.clear();														// clean de data
 			}
@@ -124,11 +126,42 @@ public class NetworkConnector {
 			e.printStackTrace();
 			return null;
 		} catch (ClassNotFoundException e) {
-			System.out.println("ClassNotFoundException");
+			System.out.println("ClassNotFoundException. Object size was "+total);
 			e.printStackTrace();
 			return null;
 		}
 	}
+	
+	
+	public Object readRecord() {
+		//System.out.println("Read chunklist");
+		ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
+		int total=0;
+		try {
+			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
+			while(timeOutRead(inBuffer,20)!=0)											// Loop zolang er data is
+			{
+				//System.out.println("readed bytes "+inBuffer.limit());
+				total+=inBuffer.limit();
+				baos.write(inBuffer.array());											// Schrijf de data naar de outputbuffer
+				inBuffer.clear();														// clean de data
+			}
+			
+			ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());	// Maak een inputstream op basis van de outputstream
+			ObjectInputStream ois = new ObjectInputStream(bis);							// Converteer deze naar object
+			return ((PreRecord)ois.readObject()).getRecord();									// Lees het object in
+
+		} catch (IOException e) {
+			System.out.println("IOException "+e.getMessage());
+			e.printStackTrace();
+			return null;
+		} catch (ClassNotFoundException e) {
+			System.out.println("ClassNotFoundException. Object size was "+total);
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	
 	
 	private int timeOutRead(ByteBuffer buffer,int timeout)

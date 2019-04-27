@@ -18,13 +18,29 @@ public class RequestRecord implements Serializable{
 	private static final long serialVersionUID = -1785679293617988947L;
 	// 0 identify record
 	// 1 get chunks from chunkIDlist
-	// 2 update block on server
-	// 
+	// 2 update new block on server
+	// 3 update remove block on
+	
 	private int requesttype;
+	public int getBlockType() {
+		return blockType;
+	}
+
+
+
+
+	public void setBlockType(int blockType) {
+		this.blockType = blockType;
+	}
+
+
+
+
 	private int usernumber;
 	private List<String> chunkids;
 	
-	private long blockid;
+	private String blockid;
+	private int blockType;
 
 
 	private RequestRecord(Builder builder) {
@@ -57,7 +73,7 @@ public class RequestRecord implements Serializable{
 	}
 
 
-	public long getBlockid() {
+	public String getBlockid() {
 		return blockid;
 	}
 
@@ -66,13 +82,42 @@ public class RequestRecord implements Serializable{
 		return new Builder();
 	}
 
+	
+
+
+	public void setRequesttype(int requesttype) {
+		this.requesttype = requesttype;
+	}
+
+
+
+
+	public void setUsernumber(int usernumber) {
+		this.usernumber = usernumber;
+	}
+
+
+
+
+	public void setChunkids(List<String> chunkids) {
+		this.chunkids = chunkids;
+	}
+
+
+
+
+	public void setBlockid(String blockid) {
+		this.blockid = blockid;
+	}
+
+
 
 
 	public static final class Builder {
 		private int requesttype;
 		private int usernumber;
 		private List<String> chunkids = Collections.emptyList();
-		private long blockid;
+		private String blockid;
 
 		private Builder() {
 		}
@@ -92,7 +137,7 @@ public class RequestRecord implements Serializable{
 			return this;
 		}
 
-		public Builder withBlockid(long blockid) {
+		public Builder withBlockid(String blockid) {
 			this.blockid = blockid;
 			return this;
 		}

@@ -21,6 +21,7 @@ import java.util.Set;
 
 
 import lioncraftserver.comobjects.ChunkListRecord;
+import lioncraftserver.comobjects.PreRecord;
 import lioncraftserver.comobjects.RequestRecord;
 import lioncraftserver.tools.Processors;
 import lioncraftserver.tools.WorldGenerator;
@@ -36,9 +37,12 @@ public class LionCraftServer {
 	InetAddress adres;
     int port;
     ServerSocketChannel serverSocketChannel;
-    Processors processor=new Processors();
+    Processors processor=new Processors();					// processor processes incoming requests
    // ChunkStorage chunkStorage;
    
+    
+    
+    
 
     boolean runflag=true;
 	
@@ -52,9 +56,9 @@ public class LionCraftServer {
 		
 		
 		LionCraftServer lioncraftserver=new LionCraftServer();
-		lioncraftserver.initDatabase();
-		lioncraftserver.initServer();
-		lioncraftserver.runServer();
+		lioncraftserver.initDatabase();							// Start the databases
+		lioncraftserver.initServer();							// Start the server
+		lioncraftserver.runServer();							// Start listening for connections and handle them
 		
 	}
 
@@ -63,7 +67,8 @@ public class LionCraftServer {
 	private void initDatabase() {
 		//chunkStorage=ChunkStorage.getChunkStorage();
 		WorldGenerator wg=new WorldGenerator();
-		wg.randomWorld();
+		//wg.randomWorld();
+		wg.testWorld();
 	}
 
 	
@@ -112,7 +117,10 @@ public class LionCraftServer {
 						{
 							switch(ra.getRequesttype())
 							{
-							case 1: write(key,processor.getChunksFromList(ra.getChunkids()));
+								case 1: write(key,processor.getChunksFromList(ra.getChunkids()));
+										break;
+								case 2: processor.addNewBlock(ra.getBlockid(), ra.getBlockType());
+								        break;
 							}
 						}
 						
@@ -128,13 +136,21 @@ public class LionCraftServer {
 	}
 
 	
-	
-	private void write(SelectionKey key, ChunkListRecord chunksFromList) {
+	/**
+	 * Write an object to the client
+	 * @param key
+	 * @param chunksFromList
+	 */
+	private void write(SelectionKey key,Object record) {
 		SocketChannel channel=(SocketChannel) key.channel();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try {
+			PreRecord prerecord=new PreRecord(record);
 			ObjectOutputStream oos = new ObjectOutputStream(bos);
-			oos.writeObject(chunksFromList);
+			oos.writeObject(prerecord);
+			
+			
+			
 			int rc=channel.write(ByteBuffer.wrap(bos.toByteArray()));
 			//System.out.println("Write "+rc+" bytes");
 		} catch (IOException e) {
@@ -144,6 +160,11 @@ public class LionCraftServer {
 		
 	}
 
+	
+	
+	
+	
+	
 	private RequestRecord read(SelectionKey key) throws IOException {
 		RequestRecord ra=null;
 		ByteBuffer readBuffer = ByteBuffer.allocate(8192);

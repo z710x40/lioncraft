@@ -19,18 +19,26 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.util.SkyFactory;
+import com.sande.lioncraft.blockcase.BlockType;
 import com.sande.lioncraft.dbconnector.DbConnector;
 import com.sande.lioncraft.network.NetworkConnector;
 import com.sande.lioncraft.storage.ChunkOrg;
 import com.sande.lioncraft.storage.VisibleChunkField;
 
+import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.elements.Element;
+import de.lessvoid.nifty.elements.render.TextRenderer;
+import de.lessvoid.nifty.screen.Screen;
+import de.lessvoid.nifty.screen.ScreenController;
 
 
-public class LionCraft extends SimpleApplication implements ActionListener{
+
+public class LionCraft extends SimpleApplication implements ActionListener,ScreenController{
 
 	
 	HashMap<String,ChunkOrg> visualChunks=new HashMap<>();
@@ -50,6 +58,11 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 	private Vector3f camLeft = new Vector3f();
 	
 	private Spatial defaultSky; 		// Pointer naar de skybox
+	
+	// De GUI interface
+	private Nifty nifty;
+	private TextRenderer message,blockname;
+	private int blockmode=0;	// 0 niks, 1=create 2=remove
 	
 	public LionCraft() {
 		
@@ -103,7 +116,7 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 		locationInfoText.setText("XXX");
 		locationInfoText.setLocalTranslation(0, this.settings.getHeight()-locationInfoText.getLineHeight(), 0);
 		locationInfoText.setColor(ColorRGBA.Black);
-		guiNode.attachChild(locationInfoText);
+		//guiNode.attachChild(locationInfoText);
 		
 		
 		initCrossHairs();
@@ -167,6 +180,24 @@ public class LionCraft extends SimpleApplication implements ActionListener{
         {
         	if(visibleChunkField.updateChunkField(0, 0))continue;
         }
+        
+        
+        NiftyJmeDisplay niftyDisplay = NiftyJmeDisplay.newNiftyJmeDisplay(
+                assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        
+        nifty = niftyDisplay.getNifty();
+        
+        nifty.fromXml("interface/HelloJme.xml", "start", this);
+        Element msg=nifty.getScreen("start").findElementById("msg");
+        message=msg.getRenderer(TextRenderer.class);
+        
+        Element block=nifty.getScreen("start").findElementById("blockname");
+        blockname=block.getRenderer(TextRenderer.class);
+        this.guiViewPort.addProcessor(niftyDisplay);
+        
 	}
 	
 	
@@ -185,7 +216,7 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 		visibleChunkField.updateChunkField(chunkPosX, chunkPosZ);
 		
 		chunkInfoText.setText(new StringBuilder().append("Chunk ").append(chunkPosX).append('X').append(chunkPosZ).toString());
-		locationInfoText.setText(new StringBuilder().append("location X:").append(campos.x).append(" Z:").append(campos.z).toString());
+		//locationInfoText.setText(new StringBuilder().append("location X:").append(campos.x).append(" Z:").append(campos.z).toString());
 		//System.out.println(" "+campos.x+ " "+campos.z);
 		
 		// Beweeg de player
@@ -232,11 +263,23 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 	    inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
 	    inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
 	    inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+	    
+	    inputManager.addMapping("Create", new KeyTrigger(KeyInput.KEY_C));
+	    inputManager.addMapping("Remove", new KeyTrigger(KeyInput.KEY_R));
+	    inputManager.addMapping("Neutral", new KeyTrigger(KeyInput.KEY_N));
+	    inputManager.addMapping("BlockSelect", new KeyTrigger(KeyInput.KEY_I));
+	    
+	    
 	    inputManager.addListener(this, "Left");
 	    inputManager.addListener(this, "Right");
 	    inputManager.addListener(this, "Up");
 	    inputManager.addListener(this, "Down");
 	    inputManager.addListener(this, "Jump");
+	    inputManager.addListener(this, "Create");
+	    inputManager.addListener(this, "Remove");
+	    inputManager.addListener(this, "Neutral");
+	    inputManager.addListener(this, "BlockSelect");
+	    
 	    
 	    inputManager.addMapping("select", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
 	    inputManager.addListener(this, "select");
@@ -260,34 +303,89 @@ public class LionCraft extends SimpleApplication implements ActionListener{
 		
 		//System.out.println("Key pressed "+Globals.bulletAppState.getPhysicsSpace().getRigidBodyList().size());
 		
-		if(name.equals("select"))
-		{
+		if (name.equals("select") && isPressed) {
 			System.out.println("Mouse Button clicked");
-			CollisionResults results = new CollisionResults();
-	        // 2. Aim the ray from cam loc to cam direction.
-	        Ray ray = new Ray(cam.getLocation(), cam.getDirection());
-	        rootNode.collideWith(ray, results);
-	        CollisionResult closest = results.getClosestCollision();
-	        if(closest!=null)
-	        {
-	        	Geometry target=closest.getGeometry();
-	        	System.out.println(" Node "+target.getName()+" chunk "+target.getUserData("chunkid"));
-	        }
-	        
+			if (blockmode == 1) {
+				CollisionResults results = new CollisionResults();
+				// 2. Aim the ray from cam loc to cam direction.
+				Ray ray = new Ray(cam.getLocation(), cam.getDirection());
+				rootNode.collideWith(ray, results);
+				CollisionResult closest = results.getClosestCollision();
+				if (closest != null) {
+					Geometry target = closest.getGeometry();
+					Vector3f hitPoint = closest.getContactPoint();
+					System.out.println(" Node " + target.getName() + " chunk " + target.getUserData("chunkid"));
+					System.out.println("x:" + hitPoint.getX() + " y:" + hitPoint.getY() + " z:" + hitPoint.getZ());
+					if (target.getUserData("chunkid") != null) {
+						visibleChunkField.addNewBlock(hitPoint);
+					}
+				}
+			}
+
 		}
 		
 		if (name.equals("Left")) {
 		      left = isPressed;
-		    } else if (name.equals("Right")) {
+		    } 
+		else if (name.equals("Right")) {
 		      right= isPressed;
-		    } else if (name.equals("Up")) {
+		    } 
+		else if (name.equals("Up")) {
 		      up = isPressed;
-		    } else if (name.equals("Down")) {
+		    } 
+		else if (name.equals("Down")) {
 		      down = isPressed;
-		    } else if (name.equals("Jump")) {
-		      
+		    } 
+		else if (name.equals("Jump")) {      
 		      if (isPressed) { player.jump(new Vector3f(0,20f,0));}
 		    }
+		
+		if(name.equals("Create"))
+		{
+			message.setText("Create object");
+			this.blockmode=1;
+		}
+		
+		if(name.equals("Remove"))
+		{
+			message.setText("Remove object");
+			this.blockmode=2;
+		}
+		
+		if(name.equals("Neutral"))
+		{
+			message.setText("Neutral");
+			this.blockmode=0;
+		}
+		
+		if(name.equals("BlockSelect"))
+		{
+			blockname.setText(BlockType.next().name());
+			this.blockmode=0;
+		}
+	}
+
+
+
+	@Override
+	public void bind(Nifty nifty, Screen screen) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void onStartScreen() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void onEndScreen() {
+		// TODO Auto-generated method stub
 		
 	}
 	

@@ -16,6 +16,8 @@ public class BlockManager {
 	ServerBlock serverBlock=new ServerBlock();
 	TextBlock letterBlock=new TextBlock();
 	Brick brickBlock=new Brick();
+	Application application=new Application();
+	MiddleWare middleware=new MiddleWare();
 	
 	private BlockManager() {
 		
@@ -28,9 +30,10 @@ public class BlockManager {
 
 		case Btype.TESTBLOCK:		return testBlock.getBlock();
 		case Btype.COMPUTERFLOOR:	return computerFloor.getBlock();
-		case Btype.SERVERBLOCK:	return serverBlock.getBlock();
-		case Btype.TEXTBLOCK:	return letterBlock.getBlock();
-		case Btype.BRICK:	return brickBlock.getBlock();
+		case Btype.SERVERBLOCK:		return serverBlock.getBlock();
+		case Btype.TEXTBLOCK:		return letterBlock.getBlock();
+		case Btype.BRICK:			return brickBlock.getBlock();
+		case Btype.APPLICATION:		return application.getBlock();
 					
 		}
 		

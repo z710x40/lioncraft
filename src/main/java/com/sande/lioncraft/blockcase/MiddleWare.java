@@ -11,10 +11,10 @@ import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 import com.sande.lioncraft.Globals;
 
-public class Application extends BasicBlock {
+public class MiddleWare extends BasicBlock {
 
 
-	private static String appNameImage="block_images/"+Application.class.getSimpleName().toLowerCase()+".png";
+	private static String appNameImage="block_images/"+MiddleWare.class.getSimpleName().toLowerCase()+".png";
 	
 	protected Geometry creatBlock()
 	{
