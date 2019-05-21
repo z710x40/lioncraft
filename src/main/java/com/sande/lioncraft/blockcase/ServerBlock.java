@@ -1,10 +1,8 @@
 package com.sande.lioncraft.blockcase;
 
-import java.util.Random;
 
 import com.jme3.asset.AssetNotFoundException;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
@@ -12,10 +10,6 @@ import com.jme3.texture.Texture;
 import com.sande.lioncraft.Globals;
 
 public class ServerBlock extends BasicBlock {
-
-
-	private Random randje=new Random();
-	
 	
 	protected Geometry creatBlock()
 	{
@@ -39,7 +33,7 @@ public class ServerBlock extends BasicBlock {
 	
 	
 	@Override
-	protected String stats() {
+	public String stats() {
 		
 		return new StringBuilder().append("C ").append(created).append(" U ").append(reused).append("  R ").append(returned).append("  ServerBlock").toString();
 	}

@@ -10,9 +10,8 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.sande.lioncraft.Globals;
-import com.sande.lioncraft.blockcase.BlockManager;
 import com.sande.lioncraft.blockcase.BlockType;
-import com.sande.lioncraft.blockcase.Btype;
+import com.sande.lioncraft.managers.BlockManager;
 
 import lioncraftserver.comobjects.Block;
 
@@ -99,7 +98,7 @@ public class ChunkOrg {
 		//int heigth=1;
 		
 		
-		blockList.add(new Block(0,0,0,Btype.COMPUTERFLOOR));
+		blockList.add(new Block(0,0,0,BlockType.COMPUTERFLOOR.getID()));
 
 		for(int x=0;x<Globals.chunkblocks-3;x++)
 		{
@@ -109,8 +108,8 @@ public class ChunkOrg {
 				for(int y=1;y<heigth;y++)
 				{
 					
-					if(y==0)blockList.add(new Block(x,y,z,Btype.COMPUTERFLOOR));
-					else blockList.add(new Block(x,y,z,Btype.SERVERBLOCK));
+					if(y==0)blockList.add(new Block(x,y,z,BlockType.COMPUTERFLOOR.getID()));
+					else blockList.add(new Block(x,y,z,BlockType.SERVERBLOCK.getID()));
 				}
 			}
 		}
@@ -131,7 +130,7 @@ public class ChunkOrg {
 		//blockList.add(new Block(this.Chunkid,0,1,0,BlockType.TESTBLOCK));
 		//blockList.add(new Block(this.Chunkid,4,1,4,BlockType.TESTBLOCK));
 		
-		blockList.add(new Block(x,0,z,Btype.COMPUTERFLOOR));
+		blockList.add(new Block(x,0,z,BlockType.COMPUTERFLOOR.getID()));
 	}
 
 

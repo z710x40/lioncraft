@@ -4,10 +4,14 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 import com.sande.lioncraft.dbconnector.DbConnector;
+import com.sande.lioncraft.managers.BlockManager;
 
 
 public class Globals {
+	
+	//private Globals global=new Globals();	// Zorg er voor dat de class bestaat
 
 	public final static float    BLOCKRADIUS=0.5f;						// Straal van een block, alleen voor create block
 	public final static float    BLOCKSIZE=BLOCKRADIUS*2;				// De ribbe van een block, puur voor transformatie
@@ -16,7 +20,7 @@ public class Globals {
 	public final static float    CHUNKRADIUS=BLOCKRADIUS*chunkblocks;	    // Absolute lengte blokken
 	public final static float    CHUNKSIZE=CHUNKRADIUS*2;
 	
-	public final static int      chunkFieldSize=8;						// Aantal zichtbare chunks
+	public final static int      chunkFieldSize=16;						// Aantal zichtbare chunks
 	
 	public final static Vector3f offset=new Vector3f(Globals.BLOCKRADIUS,Globals.BLOCKRADIUS,Globals.BLOCKRADIUS);					// Offset middelpunt block zit in het midden
 	public final static float flooroffset=CHUNKRADIUS/2-BLOCKRADIUS;	// FloorBock middelpunt block zit in het midden
@@ -26,7 +30,8 @@ public class Globals {
 	public static BulletAppState bulletAppState;
 	public static CharacterControl player;
 	public static DbConnector database;
-
+	public static Node rootNode;
+	public static BlockManager blockManager=BlockManager.GetBlockManager();
 	
 	
 }

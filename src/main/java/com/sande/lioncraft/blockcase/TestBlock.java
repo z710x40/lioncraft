@@ -2,12 +2,11 @@ package com.sande.lioncraft.blockcase;
 
 
 
-import com.jme3.asset.AssetNotFoundException;
+
 import com.jme3.material.Material;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
-import com.jme3.texture.Texture;
 import com.sande.lioncraft.Globals;
 
 public class TestBlock extends BasicBlock {
@@ -21,7 +20,7 @@ public class TestBlock extends BasicBlock {
 
 		Material material = new Material(Globals.assetmanager, "Common/MatDefs/Misc/Unshaded.j3md");
 
-		material.setTexture("ColorMap",loadTexture());
+		material.setTexture("ColorMap",loadTexture("block_images/testblock.png"));
 		cubeSpatial.setMaterial(material);
 		
 		cubeSpatial.setShadowMode(ShadowMode.CastAndReceive);
@@ -31,22 +30,11 @@ public class TestBlock extends BasicBlock {
 	}
 
 	@Override
-	protected String stats() {
+	public String stats() {
 		
-		return new StringBuilder().append("C ").append(created).append(" U ").append(reused).append("  R ").append(returned).append("  TestBlock").toString();
+		return new StringBuilder().append("Created ").append(created).append(" Reused ").append(reused).append("  Returned ").append(returned).append("  TestBlock").toString();
 	}
 
-	
-	private static Texture loadTexture() {
-		Texture nodeTexture=null;
-		try{
-			nodeTexture=Globals.assetmanager.loadTexture("block_images/testblock.png");
-		}
-		catch (AssetNotFoundException e){
-			System.out.println("Could not find asset block_images/testblock.png");
-		}
-		return nodeTexture;
-	}
-		
+
 
 }

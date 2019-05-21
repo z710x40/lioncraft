@@ -1,8 +1,17 @@
-package com.sande.lioncraft.blockcase;
+package com.sande.lioncraft.managers;
 
-import com.jme3.bullet.control.RigidBodyControl;
+
 import com.jme3.scene.Geometry;
 import com.sande.lioncraft.Globals;
+import com.sande.lioncraft.blockcase.Application;
+import com.sande.lioncraft.blockcase.BlockType;
+import com.sande.lioncraft.blockcase.Brick;
+import com.sande.lioncraft.blockcase.ComputerFloor;
+import com.sande.lioncraft.blockcase.LinuxBlock;
+import com.sande.lioncraft.blockcase.MiddleWare;
+import com.sande.lioncraft.blockcase.ServerBlock;
+import com.sande.lioncraft.blockcase.TestBlock;
+import com.sande.lioncraft.blockcase.TextBlock;
 
 
 // Singelton class voor blockken management
@@ -18,6 +27,7 @@ public class BlockManager {
 	Brick brickBlock=new Brick();
 	Application application=new Application();
 	MiddleWare middleware=new MiddleWare();
+	LinuxBlock linuxBlock=new LinuxBlock();
 	
 	private BlockManager() {
 		
@@ -25,15 +35,15 @@ public class BlockManager {
 
 	public Geometry getBlock(int blockType)
 	{
-		switch(blockType)
+		switch(BlockType.getBlock(blockType))
 		{
 
-		case Btype.TESTBLOCK:		return testBlock.getBlock();
-		case Btype.COMPUTERFLOOR:	return computerFloor.getBlock();
-		case Btype.SERVERBLOCK:		return serverBlock.getBlock();
-		case Btype.TEXTBLOCK:		return letterBlock.getBlock();
-		case Btype.BRICK:			return brickBlock.getBlock();
-		case Btype.APPLICATION:		return application.getBlock();
+		case TESTBLOCK:		return testBlock.getBlock();
+		case COMPUTERFLOOR:	return computerFloor.getBlock();
+		case SERVERBLOCK:	return serverBlock.getBlock();
+		case LETTERBLOCK:	return letterBlock.getBlock();
+		case BRICKBLOCK:	return brickBlock.getBlock();
+		case LINUXBLOCK:	return linuxBlock.getBlock();
 					
 		}
 		
@@ -62,8 +72,9 @@ public class BlockManager {
 		if(reuseBlock.getName().equals("ServerBlock"))serverBlock.popBlock(reuseBlock);
 		if(reuseBlock.getName().equals("ComputerFloor"))computerFloor.popBlock(reuseBlock);
 		if(reuseBlock.getName().equals("TestBlock"))testBlock.popBlock(reuseBlock);
-		if(reuseBlock.getName().equals("LetterBlock"))testBlock.popBlock(reuseBlock);
-		if(reuseBlock.getName().equals("BrickBlock"))testBlock.popBlock(reuseBlock);
+		if(reuseBlock.getName().equals("LetterBlock"))letterBlock.popBlock(reuseBlock);
+		if(reuseBlock.getName().equals("BrickBlock"))brickBlock.popBlock(reuseBlock);
+		if(reuseBlock.getName().equals("LinuxBlock"))linuxBlock.popBlock(reuseBlock);
 	}
 	
 	

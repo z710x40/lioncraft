@@ -1,9 +1,9 @@
 package lioncraftserver.tools;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
-import com.sande.lioncraft.storage.ChunkStorage;
+import com.sande.lioncraft.managers.ChunkStorageManager;
 
 import lioncraftserver.comobjects.Block;
 import lioncraftserver.comobjects.Chunk;
@@ -11,13 +11,18 @@ import lioncraftserver.comobjects.ChunkListRecord;
 
 public class Processors {
 
-	ChunkStorage chunkStorage=ChunkStorage.getChunkStorage();
+	ChunkStorageManager chunkStorage=ChunkStorageManager.getChunkStorage();
+	
 	
 	public Processors() {
 		// TODO Auto-generated constructor stub
 	}
 
 	
+	public Chunk getSingleChunk(String chunkId)
+	{
+		return chunkStorage.getChunk(chunkId);
+	}
 	
 	
 	public ChunkListRecord getChunksFromList(List<String> chunkIdList)
@@ -37,5 +42,14 @@ public class Processors {
 		
 		Chunk chunk=chunkStorage.getChunk(Tools.getChunkId(x, z));
 		chunk.addBlock(new Block(x,y,z,blockType));
+	}
+
+
+
+
+	public void delBlock(String blockid,String chunkid) {
+		
+		Chunk chunk=chunkStorage.getChunk(chunkid);
+		chunk.delBlock(blockid);
 	}
 }

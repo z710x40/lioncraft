@@ -9,7 +9,7 @@ import java.util.Set;
 
 import com.sande.lioncraft.Globals;
 import com.sande.lioncraft.blockcase.BlockType;
-import com.sande.lioncraft.blockcase.Btype;
+
 
 import lioncraftserver.comobjects.Block;
 import lioncraftserver.tools.OpenSimplexNoise;
@@ -79,7 +79,7 @@ public class DbConnector {
 			String ChunkID=new StringBuilder().append(chunkPosX).append('X').append(chunkPosZ).toString();
 		
 			
-			blockdb.put(ID,new Block(x,1,z,Btype.BRICK));
+			blockdb.put(ID,new Block(x,1,z,BlockType.BRICKBLOCK.getID()));
 		}
 		
 		for(int x=0;x<100;x++)
@@ -96,7 +96,7 @@ public class DbConnector {
 			String ChunkID=new StringBuilder().append(chunkPosX).append('X').append(chunkPosZ).toString();
 			
 			
-			blockdb.put(ID,new Block(x,1,z,Btype.TEXTBLOCK));
+			blockdb.put(ID,new Block(x,1,z,BlockType.LETTERBLOCK.getID()));
 		}
 		
 		

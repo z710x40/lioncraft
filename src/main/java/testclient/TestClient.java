@@ -13,7 +13,7 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sande.lioncraft.network.NetworkConnector;
+import com.sande.lioncraft.managers.NetworkConnector;
 
 import lioncraftserver.comobjects.ChunkListRecord;
 import lioncraftserver.comobjects.PreRecord;

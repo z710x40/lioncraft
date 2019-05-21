@@ -20,6 +20,7 @@ public class RequestRecord implements Serializable{
 	// 1 get chunks from chunkIDlist
 	// 2 update new block on server
 	// 3 update remove block on
+	// 4 get Single chunk
 	
 	private int requesttype;
 	public int getBlockType() {
@@ -40,7 +41,9 @@ public class RequestRecord implements Serializable{
 	private List<String> chunkids;
 	
 	private String blockid;
+	private String chunkid;
 	private int blockType;
+	
 
 
 	private RequestRecord(Builder builder) {
@@ -145,6 +148,20 @@ public class RequestRecord implements Serializable{
 		public RequestRecord build() {
 			return new RequestRecord(this);
 		}
+	}
+
+
+
+
+	public String getChunkid() {
+		return chunkid;
+	}
+
+
+
+
+	public void setChunkid(String chunkid) {
+		this.chunkid = chunkid;
 	}
 	
 	

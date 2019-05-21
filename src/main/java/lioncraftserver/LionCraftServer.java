@@ -68,7 +68,8 @@ public class LionCraftServer {
 		//chunkStorage=ChunkStorage.getChunkStorage();
 		WorldGenerator wg=new WorldGenerator();
 		//wg.randomWorld();
-		wg.testWorld();
+		wg.randomWorld();
+		wg.WorldFromCSV("D:\\erwin\\JMonkey\\unix_systems.csv");
 	}
 
 	
@@ -82,7 +83,7 @@ public class LionCraftServer {
 			InetSocketAddress inet = new InetSocketAddress(adres, port);
 			serverSocketChannel.socket().bind(inet);
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-			
+			System.out.println("Server ready listen on "+adres.getHostAddress()+" at port "+port);
 			System.out.println("Ready to accept incoming connections");
 
 		} catch (IOException e) {
@@ -121,6 +122,10 @@ public class LionCraftServer {
 										break;
 								case 2: processor.addNewBlock(ra.getBlockid(), ra.getBlockType());
 								        break;
+								case 3: processor.delBlock(ra.getBlockid(),ra.getChunkid());
+								        break;
+								case 4: write(key,processor.getSingleChunk(ra.getChunkid()));
+										break;
 							}
 						}
 						

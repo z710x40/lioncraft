@@ -1,31 +1,24 @@
-package com.sande.lioncraft.storage;
+package com.sande.lioncraft.managers;
 
 import java.util.HashMap;
 import java.util.Map;
-
-
-import com.sande.lioncraft.network.NetworkConnector;
-
 import lioncraftserver.comobjects.Chunk;
 
 
+public class ChunkStorageManager {
 
-public class ChunkStorage {
-
-	
-	private static ChunkStorage instance;
-	
+	private static ChunkStorageManager instance;
 	Map<String,Chunk> chunkDB=new HashMap<>();
 	
-	private ChunkStorage() {
+	private ChunkStorageManager() {
 		//nwConnector=NetworkConnector.getConnector();	// Init de connector
 	}
 	
-	public static ChunkStorage getChunkStorage()
+	public static ChunkStorageManager getChunkStorage()
 	{
 		if(instance==null)
 		{
-			instance=new ChunkStorage();
+			instance=new ChunkStorageManager();
 		}
 		return instance;
 	}

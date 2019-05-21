@@ -14,10 +14,10 @@ public class Block implements Serializable{
 	private static final long serialVersionUID = -2573260215978505535L;
 	
 	private String blockid;
-	private int x,y,z;				// position
-	private int relx,relz;			// Position in the chunk
-	private int blocktype=1;		// soort block
-	private String text;			// optional text on a block
+	private int x,y,z;						// position
+	private int relx,relz;					// Position in the chunk
+	private int blocktype=1;				// soort block
+	private String text="no text";			// optional text on a block
 	private boolean immutable=true;
 	private String chunkid;	// Het chunkid
 	
@@ -77,6 +77,14 @@ public class Block implements Serializable{
 
 	public int getZ() {
 		return z;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
 	}
 	
 	

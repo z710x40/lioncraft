@@ -1,4 +1,4 @@
-package com.sande.lioncraft.network;
+package com.sande.lioncraft.managers;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import lioncraftserver.comobjects.Chunk;
 import lioncraftserver.comobjects.ChunkListRecord;
 import lioncraftserver.comobjects.PreRecord;
 import lioncraftserver.comobjects.RequestRecord;
@@ -22,6 +23,8 @@ public class NetworkConnector {
 	int port = 2016;
 	
 	SocketChannel channel;		// channel naar de server
+	
+	ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
 	
 	
 	private static NetworkConnector INSTANCE;
@@ -133,9 +136,46 @@ public class NetworkConnector {
 	}
 	
 	
-	public Object readRecord() {
+	
+	/**
+	 * Get a list of Chunks from the lioncraft server
+	 * @return
+	 */
+	public Chunk readChunkRecord() {
 		//System.out.println("Read chunklist");
 		ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
+		int total=0;
+		try {
+			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
+			while(timeOutRead(inBuffer,20)!=0)											// Loop zolang er data is
+			{
+				//System.out.println("readed bytes "+inBuffer.limit());
+				total+=inBuffer.limit();
+				baos.write(inBuffer.array());											// Schrijf de data naar de outputbuffer
+				inBuffer.clear();														// clean de data
+			}
+			
+			ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());	// Maak een inputstream op basis van de outputstream
+			ObjectInputStream ois = new ObjectInputStream(bis);							// Converteer deze naar object
+			return (Chunk) ois.readObject();									// Lees het object in
+
+		} catch (IOException e) {
+			System.out.println("IOException "+e.getMessage());
+			e.printStackTrace();
+			return null;
+		} catch (ClassNotFoundException e) {
+			System.out.println("ClassNotFoundException. Object size was "+total);
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	
+	
+	// Read a record from the network
+	public Object readRecord() {
+		//System.out.println("Read chunklist");
+		
 		int total=0;
 		try {
 			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
@@ -152,11 +192,16 @@ public class NetworkConnector {
 			return ((PreRecord)ois.readObject()).getRecord();									// Lees het object in
 
 		} catch (IOException e) {
-			System.out.println("IOException "+e.getMessage());
+			System.out.println("readRecord() IOException "+e.getMessage());
 			e.printStackTrace();
 			return null;
 		} catch (ClassNotFoundException e) {
-			System.out.println("ClassNotFoundException. Object size was "+total);
+			System.out.println("readRecord() ClassNotFoundException. Object size was "+total);
+			e.printStackTrace();
+			return null;
+		} catch (ClassCastException e)
+		{
+			System.out.println("readRecord() ClassCastException");
 			e.printStackTrace();
 			return null;
 		}

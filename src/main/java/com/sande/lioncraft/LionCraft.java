@@ -1,6 +1,8 @@
 package com.sande.lioncraft;
 
 import java.util.HashMap;
+import java.util.Iterator;
+
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
@@ -15,20 +17,20 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Box;
 import com.jme3.util.SkyFactory;
 import com.sande.lioncraft.blockcase.BlockType;
 import com.sande.lioncraft.dbconnector.DbConnector;
-import com.sande.lioncraft.network.NetworkConnector;
+import com.sande.lioncraft.managers.NetworkConnector;
+import com.sande.lioncraft.managers.NetworkManager;
+import com.sande.lioncraft.managers.OrderManager;
+import com.sande.lioncraft.managers.VisibleChunkField;
 import com.sande.lioncraft.storage.ChunkOrg;
-import com.sande.lioncraft.storage.VisibleChunkField;
 
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.elements.Element;
@@ -50,6 +52,7 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	BitmapText chunkInfoText;
 	BitmapText locationInfoText;
 	CharacterControl player;
+	CollisionResults collisionResults = new CollisionResults();
 	
 	private boolean left = false, right = false, up = false, down = false;
 	
@@ -66,6 +69,9 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	
 	public LionCraft() {
 		
+		// Start the managers
+		OrderManager.getInstance();
+		NetworkManager.getInstance();
 	}
 	
 	
@@ -81,9 +87,10 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	
 	private void init() {
 		NetworkConnector nwConnector=NetworkConnector.getConnector();
-		if(!nwConnector.connect("192.168.178.21", 2016))
+		if(!nwConnector.connect("192.168.178.20", 2016))
 			{
-			 System.out.println("Cannot connect to the lioncraft server");;
+			 System.out.println("Cannot connect to the lioncraft server");
+			 System.exit(1);
 			};
 	}
 
@@ -100,6 +107,7 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 		
 		DbConnector dbConnect=new DbConnector(Globals.chunkblocks);
 		Globals.database=dbConnect;
+		Globals.rootNode=rootNode;
 		// Maak een nieuwe wereld
 		dbConnect.makeWorld();
 		
@@ -121,7 +129,7 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 		
 		initCrossHairs();
 		
-		//testbox
+		/* testbox
         this.viewPort.setBackgroundColor(ColorRGBA.LightGray);
         Box tBox=new Box(1,100,1);
         Geometry tGeom=new Geometry("test",tBox);
@@ -130,7 +138,7 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 		material.setColor("Ambient", ColorRGBA.Cyan);
 		tGeom.setMaterial(material);
 		tGeom.setLocalTranslation(0, 0, 0);
-        rootNode.attachChild(tGeom);
+        rootNode.attachChild(tGeom); */
         
         
         // Verlichting
@@ -151,7 +159,8 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
         stateManager.attach(bulletAppState);
         
         // Make the character
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.0f, 4f, 1);
+        //BoxCollisionShape capsuleShape=new BoxCollisionShape(new Vector3f(1.5f, 6f, 1f));
         player = new CharacterControl(capsuleShape, 0.05f);
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
@@ -282,7 +291,9 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	    
 	    
 	    inputManager.addMapping("select", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+	    inputManager.addMapping("delete", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 	    inputManager.addListener(this, "select");
+	    inputManager.addListener(this, "delete");
 	    
 	}
 
@@ -303,26 +314,63 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 		
 		//System.out.println("Key pressed "+Globals.bulletAppState.getPhysicsSpace().getRigidBodyList().size());
 		
+		// Voor het plaatsen van een block
 		if (name.equals("select") && isPressed) {
-			System.out.println("Mouse Button clicked");
+			//System.out.println("Mouse Button clicked");
 			if (blockmode == 1) {
-				CollisionResults results = new CollisionResults();
+				collisionResults.clear();
+				CollisionResult closest=null;
 				// 2. Aim the ray from cam loc to cam direction.
 				Ray ray = new Ray(cam.getLocation(), cam.getDirection());
-				rootNode.collideWith(ray, results);
-				CollisionResult closest = results.getClosestCollision();
+				rootNode.collideWith(ray, collisionResults);
+				Iterator<CollisionResult> cResult=collisionResults.iterator();
+				while(cResult.hasNext())
+				{
+					closest=cResult.next();
+					if(!closest.getGeometry().getName().equals("Sky"))
+						{ System.out.println("closest "+closest.getGeometry().getName());
+						  break;
+						}
+				}
+				
 				if (closest != null) {
 					Geometry target = closest.getGeometry();
 					Vector3f hitPoint = closest.getContactPoint();
 					System.out.println(" Node " + target.getName() + " chunk " + target.getUserData("chunkid"));
 					System.out.println("x:" + hitPoint.getX() + " y:" + hitPoint.getY() + " z:" + hitPoint.getZ());
 					if (target.getUserData("chunkid") != null) {
-						visibleChunkField.addNewBlock(hitPoint);
+						visibleChunkField.addNewBlock(hitPoint,BlockType.getCurBlock()    );
 					}
 				}
 			}
 
 		}
+		
+		// voor het verwijderen van een block
+		if (name.equals("delete") && isPressed) 
+		{
+			collisionResults.clear();
+			CollisionResult closest=null;
+			// 2. Aim the ray from cam loc to cam direction.
+			Ray ray = new Ray(cam.getLocation(), cam.getDirection());
+			rootNode.collideWith(ray, collisionResults);
+			Iterator<CollisionResult> cResult=collisionResults.iterator();
+			while(cResult.hasNext())
+			{
+				closest=cResult.next();
+				if(!closest.getGeometry().getName().equals("Sky"))
+					{ System.out.println("closest "+closest.getGeometry().getName());
+					  break;
+					}
+			}
+			if(closest.getGeometry().getName().equals("ComputerFloor"))return;
+			
+			visibleChunkField.removeBlock(closest.getGeometry());
+			return;
+		}
+		
+		
+		
 		
 		if (name.equals("Left")) {
 		      left = isPressed;
@@ -358,10 +406,10 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 			this.blockmode=0;
 		}
 		
-		if(name.equals("BlockSelect"))
+		if(name.equals("BlockSelect") && isPressed)
 		{
 			blockname.setText(BlockType.next().name());
-			this.blockmode=0;
+			//this.blockmode=0;
 		}
 	}
 

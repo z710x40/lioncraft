@@ -6,18 +6,15 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
 import com.sande.lioncraft.Globals;
 
-public class TextBlock extends BasicBlock {
-
-	
-	Geometry cubeSpatial;
+public class LinuxBlock extends BasicBlock {
 	
 	protected Geometry creatBlock()
 	{
 		Box box = new Box(Globals.BLOCKRADIUS,Globals.BLOCKRADIUS,Globals.BLOCKRADIUS);
-		cubeSpatial = new Geometry("LetterBlock", box);	
+		Geometry cubeSpatial = new Geometry("LinuxBlock", box);	
 		
 		Material material = new Material(Globals.assetmanager, "Common/MatDefs/Misc/Unshaded.j3md");
-		//material.setTexture("ColorMap",wrapTexture("Dit is een hele dikke text en ik hoop dat er dan ook voldoende informatie op kkomt te staan en dat het leesbaar is"));
+		material.setTexture("ColorMap",loadTexture("block_images/linuxblock.png"));
 		
 		//Material material = new Material(Globals.assetmanager, "Common/MatDefs/Light/Lighting.j3md");
 		//material.setColor("Diffuse", ColorRGBA.Red);
@@ -28,20 +25,16 @@ public class TextBlock extends BasicBlock {
 		cubeSpatial.setShadowMode(ShadowMode.CastAndReceive);
 		//cubeSpatial.setLocalTranslation(Globals.offset);
 		
-	
-		
 		return cubeSpatial;
 	}
-	
-
-	
 	
 	
 	@Override
 	protected String stats() {
 		
-		return new StringBuilder().append("C ").append(created).append(" U ").append(reused).append("  R ").append(returned).append("  LetterBlock").toString();
+		return new StringBuilder().append("C ").append(created).append(" U ").append(reused).append("  R ").append(returned).append("  ServerBlock").toString();
 	}
-		
+	
+	
 
 }
