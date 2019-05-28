@@ -5,8 +5,12 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
 
 import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.bullet.collision.shapes.CollisionShape;
@@ -15,6 +19,7 @@ import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.material.Material;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
@@ -35,6 +40,7 @@ public class GraphicsManager {
 	private Chunk tempChunk;
 	private Node tempNode;
 	
+	private Logger log = Logger.getLogger(this.getClass());
 	
 	private GraphicsManager(Node rootNode) {
 		this.rootNode=rootNode;
@@ -82,7 +88,7 @@ public class GraphicsManager {
 		tempNode=chunkNodeList.get(chunkId);
 		if(tempNode==null) 
 			{
-			System.out.println("removeChunk() chunk not found:"+chunkId);
+			//log.error("removeChunk() chunk not found:"+chunkId);
 				return;
 			}
 		
@@ -140,6 +146,22 @@ public class GraphicsManager {
 	}
 	
 	
+	public List<String> getCurrentChunkIdList()
+	{
+		List<String> tempList=new ArrayList<>();
+		List<Spatial> spatialList=rootNode.getChildren();
+		for(Spatial spatial:spatialList)
+		{
+			if(spatial instanceof Node)
+			{
+				tempList.add(spatial.getName());
+			}
+		}
+		
+		return tempList;
+	}
+	
+	
 	
 	public void addChunkToCollision(String chunkId)
 	{
@@ -169,7 +191,7 @@ public class GraphicsManager {
 	
 	public void addCharacterToCollision()
 	{
-		Globals.bulletAppState.getPhysicsSpace().add(Globals.player);
+		//Globals.bulletAppState.getPhysicsSpace().add(Globals.player);
 	}
 	
 	

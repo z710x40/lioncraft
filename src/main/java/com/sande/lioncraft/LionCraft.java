@@ -3,6 +3,8 @@ package com.sande.lioncraft;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
+
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
@@ -26,12 +28,10 @@ import com.jme3.scene.Spatial;
 import com.jme3.util.SkyFactory;
 import com.sande.lioncraft.blockcase.BlockType;
 import com.sande.lioncraft.dbconnector.DbConnector;
+import com.sande.lioncraft.managers.ChunkStorageManager;
 import com.sande.lioncraft.managers.NetworkConnector;
-import com.sande.lioncraft.managers.NetworkManager;
-import com.sande.lioncraft.managers.OrderManager;
 import com.sande.lioncraft.managers.VisibleChunkField;
 import com.sande.lioncraft.storage.ChunkOrg;
-
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
@@ -66,27 +66,32 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	private Nifty nifty;
 	private TextRenderer message,blockname;
 	private int blockmode=0;	// 0 niks, 1=create 2=remove
+	private Logger log = Logger.getLogger(this.getClass());
+	private NetworkConnector nwConnector;
+	
+
 	
 	public LionCraft() {
 		
+		log.info("####################  Start LionCraft ####################" );
 		// Start the managers
-		OrderManager.getInstance();
-		NetworkManager.getInstance();
+		
 	}
 	
 	
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
+		
 		LionCraft lioncraft=new LionCraft();
 		lioncraft.init();
 		lioncraft.start();
+		
 	}
 
 	
 	private void init() {
-		NetworkConnector nwConnector=NetworkConnector.getConnector();
+		nwConnector=NetworkConnector.getConnector();
 		if(!nwConnector.connect("192.168.178.20", 2016))
 			{
 			 System.out.println("Cannot connect to the lioncraft server");
@@ -159,17 +164,15 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
         stateManager.attach(bulletAppState);
         
         // Make the character
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.0f, 4f, 1);
-        //BoxCollisionShape capsuleShape=new BoxCollisionShape(new Vector3f(1.5f, 6f, 1f));
+        /*CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.0f, 4f, 1);
         player = new CharacterControl(capsuleShape, 0.05f);
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(new Vector3f(0,-30f,0));
         player.setPhysicsLocation(new Vector3f(0, 20, 0));
-        //player.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_01);
         Globals.player=player;
-    
-        bulletAppState.getPhysicsSpace().add(player);
+    */
+        //bulletAppState.getPhysicsSpace().add(player);
         //bulletAppState.setDebugEnabled(true);
         
         
@@ -185,10 +188,18 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
      	System.out.println("Init done, ready to place the first block");
         
         visibleChunkField=new VisibleChunkField(rootNode);
-        for(int tel=0;tel<20;tel++)
-        {
-        	if(visibleChunkField.updateChunkField(0, 0))continue;
-        }
+        visibleChunkField.updateChunkField(0, 0);
+        try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+       
+         
+        //nwConnector.sendRequest();
+		
+		//nwConnector.readChunkListRecord();
         
         
         NiftyJmeDisplay niftyDisplay = NiftyJmeDisplay.newNiftyJmeDisplay(
@@ -222,7 +233,15 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 		
 		
 		// Update de chunk field
-		visibleChunkField.updateChunkField(chunkPosX, chunkPosZ);
+		boolean result=visibleChunkField.updateChunkField(chunkPosX, chunkPosZ);
+		
+		if(result)
+			{visibleChunkField.buildMissingChunks();
+			 //nwConnector.sendRequest();
+			}
+		
+		//nwConnector.readChunkListRecordOrder();
+		
 		
 		chunkInfoText.setText(new StringBuilder().append("Chunk ").append(chunkPosX).append('X').append(chunkPosZ).toString());
 		//locationInfoText.setText(new StringBuilder().append("location X:").append(campos.x).append(" Z:").append(campos.z).toString());
@@ -244,8 +263,8 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
         if (down) {
             walkDirection.addLocal(camDir.negate());
         }
-        player.setWalkDirection(walkDirection);
-        cam.setLocation(player.getPhysicsLocation());
+        //player.setWalkDirection(walkDirection);    // moet weer terug voor de beweging
+        //cam.setLocation(player.getPhysicsLocation());
 	}
 	
 	
@@ -414,6 +433,15 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	}
 
 
+	@Override
+	public void destroy(){
+		super.destroy();
+		ChunkStorageManager chunkcStorage=ChunkStorageManager.getChunkStorage();
+		chunkcStorage.endThread();
+		log.info("Lioncraft has ended");
+	}
+	
+	
 
 	@Override
 	public void bind(Nifty nifty, Screen screen) {

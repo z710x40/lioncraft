@@ -1,17 +1,34 @@
 package com.sande.lioncraft.managers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import lioncraftserver.comobjects.Chunk;
+import lioncraftserver.comobjects.ChunkListRecord;
+import lioncraftserver.comobjects.RequestRecord;
 
 
-public class ChunkStorageManager {
+public class ChunkStorageManager implements Runnable{
 
 	private static ChunkStorageManager instance;
 	Map<String,Chunk> chunkDB=new HashMap<>();
+	NetworkConnector nwConnector =NetworkConnector.getConnector();
+	private List<String> chunksToReqeust=new ArrayList<>();
+	private Map<String,Integer> chunkRequestStatusList=new HashMap<>(); // 0=empty ,1=requested,
+	boolean runflag=true;
+	
+	boolean readyToSend=true;
+	boolean readyToReceive=false;
+	
+	private Logger log = Logger.getLogger(this.getClass());
 	
 	private ChunkStorageManager() {
-		//nwConnector=NetworkConnector.getConnector();	// Init de connector
+		Thread thread = new Thread(this);
+		thread.start();
 	}
 	
 	public static ChunkStorageManager getChunkStorage()
@@ -20,6 +37,7 @@ public class ChunkStorageManager {
 		{
 			instance=new ChunkStorageManager();
 		}
+		
 		return instance;
 	}
 	
@@ -38,16 +56,75 @@ public class ChunkStorageManager {
 			return chunkDB.get(chunkID);
 		}
 		
-		//System.out.println("Nieuwe chunk "+chunkID);
-		String coords[]=chunkID.split("X");	// Haal de relatieve coordinaten uit het ID
-		int x=Integer.parseInt(coords[0]);
-		int z=Integer.parseInt(coords[1]);
+		if(chunkRequestStatusList.containsKey(chunkID))
+		{
+			if(chunkRequestStatusList.get(chunkID)==1)return null;
+		}
 		
-		Chunk newChunk=new Chunk(x,z);
-		//newChunk.RandomFill();
-		
-		add(newChunk);
+		chunksToReqeust.add(chunkID);
+		chunkRequestStatusList.put(chunkID, 1);
+		if(chunksToReqeust.size()>5)
+		{
+			requestNewChunks();
+			log.info("Request new chunks from the server");
+		}
 		
 		return chunkDB.get(chunkID);
 	}
+	
+	
+	private void requestNewChunks()
+	{
+		if(this.readyToSend)
+		{
+			RequestRecord rr=new RequestRecord();
+			rr.setRequesttype(1);
+			rr.setChunkids(chunksToReqeust);
+			nwConnector.writeRecord(rr);
+			chunksToReqeust.clear();
+			readyToSend=false;
+			readyToReceive=true;
+		}
+		
+	}
+
+	@Override
+	public void run() {
+
+		log.info("Start Thread");
+		while (runflag)
+		{
+			if(readyToReceive)
+			{
+			ChunkListRecord chkRec=nwConnector.readChunkListRecord();
+			
+				if(chkRec!=null)
+				{
+					chkRec.list.forEach(chunk -> chunkDB.put(chunk.getChunkid(), chunk) );
+					log.info("New chunk recieved : "+ chkRec.list.size());
+					log.info("Chunkdb is "+chunkDB.size());
+					readyToSend=true;
+					readyToReceive=false;
+				}
+			}
+			
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//log.info(chunkRequestStatusList);
+		}
+	}
+
+	public void endThread() {
+		runflag=false;
+		
+	}
+	
+	
+	
+	
 }

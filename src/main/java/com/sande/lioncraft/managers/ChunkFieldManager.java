@@ -2,8 +2,8 @@ package com.sande.lioncraft.managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 
 
 public class ChunkFieldManager {
@@ -15,8 +15,7 @@ public class ChunkFieldManager {
 	private ArrayList<String> chunksToAdd=new ArrayList<>();				// Chunks die moeten worden toegevoegd
 	private ArrayList<String> chunksToCollide=new ArrayList<>();			// Chunks die kunnen botsen
 	private ArrayList<String> newChunkFieldIDList=new ArrayList<>();		// De nieuwe chunklist na het bereiken van een nieuwe chunk
-	
-	private Map<String,Byte> chunkStatList = new HashMap<>();				// 0=empty
+	private Map<String,Integer> chunkFieldStatus=new HashMap<>();			// Lijst met de status van elke chunk	0=empty,1=build,2=
 	
 	
 	public ChunkFieldManager() {
@@ -28,22 +27,26 @@ public class ChunkFieldManager {
 	}
 
 	
-	
+	// Maak een nieuwe lijst met chunk vanuit een volledig nieuwe positie
 	public void setNewCenterAt(int currentChunkX,int currentChunkZ)
 	{
 		currentChunkFieldIDList.clear();
+		chunkFieldStatus.clear();
 		for(int telx=-fieldsize;telx<fieldsize;telx++)
 		{
 			for(int telz=-fieldsize;telz<fieldsize;telz++)
 			{
+				String newChunkId=new StringBuilder().append(currentChunkX+telx).append('X').append(currentChunkZ+telz).toString();
+				chunkFieldStatus.put(newChunkId, 0);
+				currentChunkFieldIDList.add(newChunkId);
 				
-				currentChunkFieldIDList.add(new StringBuilder().append(currentChunkX+telx).append('X').append(currentChunkZ+telz).toString());
 			}
 		}
 	}
 	
 	
 	
+	// Verplaats het chunkveld naar een nieuw centrum en bereken welke chunk er bij moeten komen en welke er af moeten
 	public void moveCenterAt(int currentChunkX,int currentChunkZ)
 	{
 		// Maak de nieuwe lijst
@@ -52,7 +55,6 @@ public class ChunkFieldManager {
 		{
 			for(int telz=-fieldsize;telz<fieldsize;telz++)
 			{
-				
 				newChunkFieldIDList.add(new StringBuilder().append(currentChunkX+telx).append('X').append(currentChunkZ+telz).toString());
 			}
 		}
@@ -64,6 +66,8 @@ public class ChunkFieldManager {
 			if(!newChunkFieldIDList.contains(currentChunk))
 			{
 				chunksToReturn.add(currentChunk);
+				chunkFieldStatus.remove(currentChunk);
+				
 			}
 		}
 		
@@ -72,6 +76,10 @@ public class ChunkFieldManager {
 		for (String newChunk : newChunkFieldIDList) {
 			if (!currentChunkFieldIDList.contains(newChunk)) {
 				chunksToAdd.add(newChunk);
+				if(!chunkFieldStatus.containsKey(newChunk))
+				{
+					chunkFieldStatus.put(newChunk, 0);
+				}
 			}
 		}
 		
@@ -85,11 +93,15 @@ public class ChunkFieldManager {
 			}
 		}
 		
-		
-		
 		// Update de current list
 		currentChunkFieldIDList.clear();
 		newChunkFieldIDList.forEach(fieldId -> currentChunkFieldIDList.add(fieldId));
+	}
+	
+	
+	public void setChunkAsBuild(String chunkId)
+	{
+		chunkFieldStatus.replace(chunkId, 1);
 	}
 	
 	
@@ -119,9 +131,12 @@ public class ChunkFieldManager {
 		return "ChunkFieldManager \n[currentChunkFieldIDList=" + currentChunkFieldIDList + ",\n chunksToReturn=         " + chunksToReturn + ",\n chunksToAdd=            " + chunksToAdd + ",\n chunksToCollide=        " + chunksToCollide + ",\n newChunkFieldIDList=    " + newChunkFieldIDList + "]";
 	}
 
-
 	
-	
-	
+	public List<String> getChunksThatAreNotBuild()
+	{
+		List<String> tempList=new ArrayList<>();
+		chunkFieldStatus.forEach((K,V) -> {if(V==0)tempList.add(K);});
+		return tempList;
+	}
 	
 }

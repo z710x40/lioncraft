@@ -48,16 +48,21 @@
 			<artifactId>jme3-niftygui</artifactId>
 			<version>${jme3_v}</version>
 		</dependency>
-	<dependency>
+		<dependency>
 			<groupId>${jme3_g}</groupId>
 			<artifactId>jme3-blender</artifactId>
 			<version>${jme3_v}</version>
 		</dependency>
-	<dependency>
+		<dependency>
 			<groupId>${jme3_g}</groupId>
 			<artifactId>jme3-bullet</artifactId>
 			<version>${jme3_v}</version>
-		</dependency>	
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
 
 	</dependencies>
 	<build>

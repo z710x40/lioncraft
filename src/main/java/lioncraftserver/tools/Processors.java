@@ -3,16 +3,20 @@ package lioncraftserver.tools;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import com.sande.lioncraft.managers.ChunkStorageManager;
 
+import lioncraftserver.ChunkServerStorageManager;
 import lioncraftserver.comobjects.Block;
 import lioncraftserver.comobjects.Chunk;
 import lioncraftserver.comobjects.ChunkListRecord;
 
 public class Processors {
 
-	ChunkStorageManager chunkStorage=ChunkStorageManager.getChunkStorage();
+	ChunkServerStorageManager chunkServerStorage=ChunkServerStorageManager.getChunkStorage();
 	
+	private Logger log = Logger.getLogger(this.getClass());
 	
 	public Processors() {
 		// TODO Auto-generated constructor stub
@@ -21,14 +25,17 @@ public class Processors {
 	
 	public Chunk getSingleChunk(String chunkId)
 	{
-		return chunkStorage.getChunk(chunkId);
+		Chunk temp=chunkServerStorage.getChunk(chunkId);
+		return temp;
 	}
 	
 	
 	public ChunkListRecord getChunksFromList(List<String> chunkIdList)
 	{
+		log.debug("Get a list of chunks from the list of chunkID's");
 		ChunkListRecord newList=new ChunkListRecord();
-		chunkIdList.forEach(chunkId -> newList.list.add(chunkStorage.getChunk(chunkId)));
+		chunkIdList.forEach(chunkId -> newList.list.add(chunkServerStorage.getChunk(chunkId)));
+		log.debug("Number of chunks is "+newList.list.size());
 		return newList;
 	}
 	
@@ -40,7 +47,7 @@ public class Processors {
 		int y=Integer.parseInt(xyz[1]);
 		int z=Integer.parseInt(xyz[2]);
 		
-		Chunk chunk=chunkStorage.getChunk(Tools.getChunkId(x, z));
+		Chunk chunk=chunkServerStorage.getChunk(Tools.getChunkId(x, z));
 		chunk.addBlock(new Block(x,y,z,blockType));
 	}
 
@@ -49,7 +56,7 @@ public class Processors {
 
 	public void delBlock(String blockid,String chunkid) {
 		
-		Chunk chunk=chunkStorage.getChunk(chunkid);
+		Chunk chunk=chunkServerStorage.getChunk(chunkid);
 		chunk.delBlock(blockid);
 	}
 }

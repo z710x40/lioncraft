@@ -10,11 +10,11 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-
-import lioncraftserver.comobjects.Chunk;
+import org.apache.log4j.Logger;
 import lioncraftserver.comobjects.ChunkListRecord;
-import lioncraftserver.comobjects.PreRecord;
 import lioncraftserver.comobjects.RequestRecord;
+
+
 
 public class NetworkConnector {
 
@@ -25,9 +25,14 @@ public class NetworkConnector {
 	SocketChannel channel;		// channel naar de server
 	
 	ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
-	
+	private Logger log = Logger.getLogger(this.getClass());
 	
 	private static NetworkConnector INSTANCE;
+	int bytesRead;
+	
+	
+	
+	boolean requestInProcessing=false;
 	
 	private NetworkConnector() {
 		
@@ -64,7 +69,7 @@ public class NetworkConnector {
 			e.printStackTrace();
 			return false;
 		}
-		System.out.printf("Client connected to %s at port %d\n",hostname,port);
+		log.info("Client connected to "+hostname+" at port "+port);
 		return true;
 	}
 	
@@ -89,119 +94,53 @@ public class NetworkConnector {
 	 * @return
 	 */
 	public int writeRecord(RequestRecord request) {
-		//System.out.println("Write request");
+		log.debug("Write request");
 		try {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(bos);
 			oos.writeObject(request);
-			return channel.write(ByteBuffer.wrap(bos.toByteArray()));
+			byte[] inter=bos.toByteArray();
+			ByteBuffer interBuf=ByteBuffer.wrap(inter);
+			return channel.write(interBuf);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			log.debug("IOException "+e.getMessage());
 			e.printStackTrace();
 		}
 		return -1;
 	}
+	
+	
 	
 	/**
 	 * Get a list of Chunks from the lioncraft server
 	 * @return
 	 */
 	public ChunkListRecord readChunkListRecord() {
-		//System.out.println("Read chunklist");
+		//log.debug("Read chunklist from the network");
 		ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
 		int total=0;
 		try {
 			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
-			while(timeOutRead(inBuffer,20)!=0)											// Loop zolang er data is
+			while(timeOutRead(inBuffer,5)>0)											// Loop zolang er data is
 			{
-				//System.out.println("readed bytes "+inBuffer.limit());
+				//log.debug("readed bytes "+inBuffer.limit());
 				total+=inBuffer.limit();
 				baos.write(inBuffer.array());											// Schrijf de data naar de outputbuffer
 				inBuffer.clear();														// clean de data
 			}
+			//log.debug("total readed bytes is "+total);
+			if(total==0)return null;
 			
 			ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());	// Maak een inputstream op basis van de outputstream
 			ObjectInputStream ois = new ObjectInputStream(bis);							// Converteer deze naar object
 			return (ChunkListRecord) ois.readObject();									// Lees het object in
 
 		} catch (IOException e) {
-			System.out.println("IOException "+e.getMessage());
+			log.info("IOException "+e.getMessage());
 			e.printStackTrace();
 			return null;
 		} catch (ClassNotFoundException e) {
-			System.out.println("ClassNotFoundException. Object size was "+total);
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	
-	
-	/**
-	 * Get a list of Chunks from the lioncraft server
-	 * @return
-	 */
-	public Chunk readChunkRecord() {
-		//System.out.println("Read chunklist");
-		ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
-		int total=0;
-		try {
-			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
-			while(timeOutRead(inBuffer,20)!=0)											// Loop zolang er data is
-			{
-				//System.out.println("readed bytes "+inBuffer.limit());
-				total+=inBuffer.limit();
-				baos.write(inBuffer.array());											// Schrijf de data naar de outputbuffer
-				inBuffer.clear();														// clean de data
-			}
-			
-			ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());	// Maak een inputstream op basis van de outputstream
-			ObjectInputStream ois = new ObjectInputStream(bis);							// Converteer deze naar object
-			return (Chunk) ois.readObject();									// Lees het object in
-
-		} catch (IOException e) {
-			System.out.println("IOException "+e.getMessage());
-			e.printStackTrace();
-			return null;
-		} catch (ClassNotFoundException e) {
-			System.out.println("ClassNotFoundException. Object size was "+total);
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	
-	
-	// Read a record from the network
-	public Object readRecord() {
-		//System.out.println("Read chunklist");
-		
-		int total=0;
-		try {
-			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
-			while(timeOutRead(inBuffer,20)!=0)											// Loop zolang er data is
-			{
-				//System.out.println("readed bytes "+inBuffer.limit());
-				total+=inBuffer.limit();
-				baos.write(inBuffer.array());											// Schrijf de data naar de outputbuffer
-				inBuffer.clear();														// clean de data
-			}
-			
-			ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());	// Maak een inputstream op basis van de outputstream
-			ObjectInputStream ois = new ObjectInputStream(bis);							// Converteer deze naar object
-			return ((PreRecord)ois.readObject()).getRecord();									// Lees het object in
-
-		} catch (IOException e) {
-			System.out.println("readRecord() IOException "+e.getMessage());
-			e.printStackTrace();
-			return null;
-		} catch (ClassNotFoundException e) {
-			System.out.println("readRecord() ClassNotFoundException. Object size was "+total);
-			e.printStackTrace();
-			return null;
-		} catch (ClassCastException e)
-		{
-			System.out.println("readRecord() ClassCastException");
+			log.info("ClassNotFoundException. Object size was "+total);
 			e.printStackTrace();
 			return null;
 		}
@@ -218,20 +157,24 @@ public class NetworkConnector {
 				rc=channel.read(buffer);
 				if(rc!=0)
 				{
+					//log.debug("Bytest read is "+rc);
 					return rc;
 				}
 				Thread.sleep(1);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				log.debug("IOException "+e.getMessage());
 				e.printStackTrace();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				log.debug("InterruptedException "+e.getMessage());
 				e.printStackTrace();
 			}
 		}
-		System.out.printf("Socket time out after %d milliseconds\n",timeout);
+		//log.debug("Socket time out after "+timeout+" milliseconds");
 		return 0;
 		
 	}
+	
+	
+	
 	
 }

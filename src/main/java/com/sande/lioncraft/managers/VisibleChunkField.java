@@ -1,11 +1,17 @@
 package com.sande.lioncraft.managers;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.sande.lioncraft.Globals;
 import com.sande.lioncraft.blockcase.BlockType;
 
+import lioncraftserver.comobjects.Chunk;
 import lioncraftserver.comobjects.ChunkListRecord;
 import lioncraftserver.comobjects.RequestRecord;
 import lioncraftserver.tools.Tools;
@@ -22,20 +28,25 @@ public class VisibleChunkField {
 	
 	ChunkStorageManager chunkcStorage=ChunkStorageManager.getChunkStorage();	// De centrale chunk database
 	GraphicsManager graphicsManager=GraphicsManager.getInstance(Globals.rootNode);
-	NetworkConnector nwConnector;
+	//NetworkConnector nwConnector;
 	BlockManager blockManager=BlockManager.GetBlockManager();
 	Node rootNode;
-	RequestRecord reqRec=new RequestRecord();
-	OrderManager orderManager=OrderManager.getInstance();
+	
+	
+	//OrderManager orderManager =OrderManager.getInstance();
+	
+	List<Chunk> chunkList=new ArrayList<>();
 	
 	int visible;
 	
 	ChunkFieldManager chunkFieldManager;
 	
+	private Logger log = Logger.getLogger(this.getClass());
+	
 	
 	public VisibleChunkField(Node rootNode) 
 	{
-		nwConnector=NetworkConnector.getConnector();	// Init de connector
+		//nwConnector=NetworkConnector.getConnector();	// Init de connector
 		visible=Globals.chunkFieldSize;					// aantal zichtbare chunks rondom het centrale punt van de camera
 		this.rootNode=rootNode;
 		
@@ -50,14 +61,25 @@ public class VisibleChunkField {
 	// Make an update of the chunk field
 	public boolean updateChunkField(int x, int z)	// Geef het huidige chunkfield mee
 	{
-		boolean errorFlag=true;
+		
+		List<String> rootChunkIdList=graphicsManager.getCurrentChunkIdList();
+		for(String chunkId:chunkFieldManager.getCurrentChunkIdList())
+			{
+			 if(!rootChunkIdList.contains(chunkId))
+			 {
+				Chunk chunk=chunkcStorage.getChunk(chunkId);
+				if(chunk==null)continue;
+				graphicsManager.buildChunk(chunk); 
+			 }
+			}
+		
 		// Kijk of een update nodig is
 		if(x==currentChunkX & z==currentChunkZ)
 		{
 			return false;		// Nee, keer false terug
 		}
 		
-		System.out.println("Visible Field update");
+		log.debug("Visible Field update");
 		currentChunkX=x;	// Update met nieuwe coordinaten
 		currentChunkZ=z;
 		
@@ -66,51 +88,35 @@ public class VisibleChunkField {
 		
 		
 		// Leeg de chunks die worden verwijderd
-		chunkFieldManager.getChunkIdToRemoveList().forEach(chunkId -> chunkcStorage.getChunk(chunkId).destruct());
+		for(String chunkId:chunkFieldManager.getChunkIdToRemoveList())
+		{
+			Chunk chunk=chunkcStorage.getChunk(chunkId);
+			if(chunk!=null)chunk.destruct();
+			
+		}
+		
+		//chunkFieldManager.getChunkIdToRemoveList().forEach(chunkId -> chunkcStorage.getChunk(chunkId).destruct());
 		
 		
 		// Verwijder de geometries die er bij horen
 		chunkFieldManager.getChunkIdToRemoveList().forEach(chunkId -> graphicsManager.removeChunk(chunkId));
 		
-		
-		// Haal alles van het netwerk op
-		RequestRecord rq=RequestRecord.builder().withRequesttype(1).withChunkids(chunkFieldManager.getChunkIdToAddList()).build();	// Maar een request record aan
-		nwConnector.writeRecord(rq);																								// Stuur deze naar de server
-		
+		// Plaats de nieuwe chunks
 		for(String chunkId:chunkFieldManager.getChunkIdToAddList())
 		{
-			orderManager.putRequestRecord(rq);
+			Chunk chunk=chunkcStorage.getChunk(chunkId);
+			if(chunk==null)continue;
+			graphicsManager.buildChunk(chunk);
 		}
+		log.debug("New build chunk :"+chunkFieldManager.getChunkIdToAddList().size());
 		
-		
-		
-		ChunkListRecord chunkToList=null;				// Leeg de chunklist
-		Object record=getChunkListFromTheNetwork(10);		// Lees de ontvangen chunklist
-		if(record instanceof ChunkListRecord)		
-		{
-			chunkToList=(ChunkListRecord)record;
-		}
-		if(chunkToList==null)
-		{
-			System.out.println("Server could not provide a full chunklist");
-			return false;
-		}
-		
-		// Plaats de grafische objecten
-		chunkToList.list.forEach(chunk -> graphicsManager.buildChunk(chunk));
-		
-		// maak de collision group voor de dichtsbijzinde group
-		graphicsManager.clearAllCollisions();
-		chunkFieldManager.getChunkIdToCollideList().forEach(chunkId -> graphicsManager.addChunkToCollision(chunkId));
-		graphicsManager.addCharacterToCollision();
-
-		//graphicsManager.stats();
-		//BlockManager.GetBlockManager().printStats();
-		return errorFlag;
+	
+		return true;
 		
 	}
 	
-
+	
+	
 
 	public void addNewBlock(Vector3f hitPoint,BlockType blockType) {
 		int x=(int)(hitPoint.getX()+0.5f);
@@ -124,10 +130,11 @@ public class VisibleChunkField {
 		newBlock.setLocalTranslation(x,y,z);
 		rootNode.attachChild(newBlock);
 		System.out.println("block added at x:"+x+" y:"+y+" z:"+z+" type:"+blockType.name());
+		RequestRecord reqRec=new RequestRecord();
 		reqRec.setRequesttype(2);
 		reqRec.setBlockid(Tools.getBlockId(x, y, z));
 		reqRec.setBlockType(blockType.getID());
-		nwConnector.writeRecord(reqRec);
+		//orderManager.putRequest(reqRec);
 	}
 
 
@@ -137,23 +144,32 @@ public class VisibleChunkField {
 		rootNode.detachChild(geometry);
 	 
 		chunkcStorage.getChunk(geometry.getUserData("chunkid")).delBlock(geometry.getUserData("blockid"));
+		RequestRecord reqRec=new RequestRecord();
 		reqRec.setRequesttype(3);
 		reqRec.setBlockid(geometry.getUserData("blockid"));
 		reqRec.setChunkid(geometry.getUserData("chunkid"));
-		nwConnector.writeRecord(reqRec);
+		//orderManager.putRequest(reqRec);
 		this.updateChunkField(currentChunkX, currentChunkZ);
 	}
-	
-	
-	Object getChunkListFromTheNetwork(int timeout)
-	{
-		for(int tel=0;tel<timeout;tel++)
+
+
+	public void buildMissingChunks() {
+		List<String> missingChunk=chunkFieldManager.getChunksThatAreNotBuild();
+		RequestRecord reqRec=new RequestRecord();
+		reqRec.setRequesttype(1);
+		reqRec.setChunkids(missingChunk);
+		//orderManager.putRequest(reqRec);
+		
+		/*ChunkListRecord chunkRecordList=orderManager.getChunkList();
+		if(chunkRecordList==null)return;
+		for(Chunk chunk:chunkRecordList.list)
 		{
-			Object result=nwConnector.readRecord();
-			if(result!=null)return result;
-		}
-		System.out.println("getChunkListFromTheNetwork to many read attempts");
-		return null;
+			graphicsManager.buildChunk(chunk);	
+		}*/
+		
+		
 	}
+	
+
 	
 }

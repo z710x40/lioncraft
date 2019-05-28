@@ -8,13 +8,14 @@ import java.util.Scanner;
 import com.sande.lioncraft.blockcase.BlockType;
 import com.sande.lioncraft.managers.ChunkStorageManager;
 
+import lioncraftserver.ChunkServerStorageManager;
 import lioncraftserver.comobjects.Block;
 import lioncraftserver.comobjects.Chunk;
 
 public class WorldGenerator {
 
 	
-	ChunkStorageManager chunkStorage=ChunkStorageManager.getChunkStorage();
+	ChunkServerStorageManager chunkServerStorage=ChunkServerStorageManager.getChunkStorage();
 	
 	public WorldGenerator() {
 		// TODO Auto-generated constructor stub
@@ -39,7 +40,7 @@ public class WorldGenerator {
 			
 			Block block=new Block(x,y,z,BlockType.TESTBLOCK.getID());
 			
-			Chunk chunk=chunkStorage.getChunk(Tools.getChunkId(x, z));
+			Chunk chunk=chunkServerStorage.getChunk(Tools.getChunkId(x, z));
 			chunk.addBlock(block);
 		}
 		System.out.println("Finished generate Random Word");
@@ -125,7 +126,7 @@ public void WorldFromCSV(String csvfilename) {
 	private void addBlock(int x, int y, int z,int blocktype)
 	{
 		Block block=new Block(x,y,z,blocktype);
-		Chunk chunk=chunkStorage.getChunk(Tools.getChunkId(x, z));
+		Chunk chunk=chunkServerStorage.getChunk(Tools.getChunkId(x, z));
 		chunk.addBlock(block);
 	}
 	
@@ -134,7 +135,7 @@ public void WorldFromCSV(String csvfilename) {
 	{
 		Block block=new Block(x,y,z,blocktype);
 		block.setText(text);
-		Chunk chunk=chunkStorage.getChunk(Tools.getChunkId(x, z));
+		Chunk chunk=chunkServerStorage.getChunk(Tools.getChunkId(x, z));
 		chunk.addBlock(block);
 	}
 	
