@@ -1,8 +1,6 @@
 package lioncraftserver.comobjects;
 
 import java.util.List;
-import javax.annotation.Generated;
-
 import java.io.Serializable;
 import java.util.Collections;
 

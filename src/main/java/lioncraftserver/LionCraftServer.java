@@ -116,7 +116,7 @@ public class LionCraftServer {
 						RequestRecord ra=read(key);
 						if(ra!=null)
 						{
-							log.info("Received request type "+ra.getRequesttype());
+							log.debug("Received request type "+ra.getRequesttype());
 							switch(ra.getRequesttype())
 							{
 								case 1: log.debug("Process Request type 1");
@@ -150,7 +150,7 @@ public class LionCraftServer {
 	 * @param chunksFromList
 	 */
 	private void write(SelectionKey key,Object record) {
-		log.info("Write object to client system ");
+		log.debug("Write object to client system ");
 		SocketChannel channel=(SocketChannel) key.channel();
 		if(!channel.isOpen())
 		{

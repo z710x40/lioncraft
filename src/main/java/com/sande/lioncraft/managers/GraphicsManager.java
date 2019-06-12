@@ -34,7 +34,7 @@ public class GraphicsManager {
 	private static GraphicsManager INSTANCE;
 	private Node rootNode;
 	private BlockManager blockManager=BlockManager.GetBlockManager();
-	
+	ChunkStorageManager chunkStorageManager=ChunkStorageManager.getChunkStorage();
 	private Map<String,Chunk> chunkList=new HashMap<>();
 	private Map<String,Node> chunkNodeList=new HashMap<>();
 	private Chunk tempChunk;
@@ -162,36 +162,37 @@ public class GraphicsManager {
 	}
 	
 	
-	
-	public void addChunkToCollision(String chunkId)
+	public void addChunksToCollision(List<String> chunkIds)
 	{
-		tempNode=chunkNodeList.get(chunkId);
-		if(tempNode==null) 
-			{
-				return;
-			}
+		Globals.bulletAppState.getPhysicsSpace().removeAll(rootNode);
 		
-		tempNode.getChildren().forEach(geom -> makeCollision((Geometry)geom));
+		log.debug("Add chunks to the collision:"+chunkIds.size());
+		for(String chunkId:chunkIds)
+		{
+			tempNode=chunkNodeList.get(chunkId);
+		
+			if(tempNode==null) 
+				{
+					continue;
+				}	
+			tempNode.getChildren().forEach(geom -> makeCollision((Geometry)geom));
+		}
 	}
 	
 	
 	private void makeCollision(Geometry block) {
 		CollisionShape cubeCollision=CollisionShapeFactory.createBoxShape(block);
 		RigidBodyControl rigidBodyControl=new RigidBodyControl(cubeCollision,0);
-		rigidBodyControl.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_01);
+		//rigidBodyControl.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_01);
 		block.addControl(rigidBodyControl);
 		Globals.bulletAppState.getPhysicsSpace().add(rigidBodyControl);
 	
 }
 
 
-	public void clearAllCollisions() {
-		Globals.bulletAppState.getPhysicsSpace().removeAll(rootNode);
-	}
-	
 	public void addCharacterToCollision()
 	{
-		//Globals.bulletAppState.getPhysicsSpace().add(Globals.player);
+		Globals.bulletAppState.getPhysicsSpace().add(Globals.player);
 	}
 	
 	

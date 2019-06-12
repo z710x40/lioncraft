@@ -15,10 +15,10 @@ import lioncraftserver.comobjects.RequestRecord;
 public class ChunkStorageManager implements Runnable{
 
 	private static ChunkStorageManager instance;
-	Map<String,Chunk> chunkDB=new HashMap<>();
+	Map<String,Chunk> chunkDB=new HashMap<>();							// De ChunkStorage
 	NetworkConnector nwConnector =NetworkConnector.getConnector();
 	private List<String> chunksToReqeust=new ArrayList<>();
-	private Map<String,Integer> chunkRequestStatusList=new HashMap<>(); // 0=empty ,1=requested,
+	private Map<String,Integer> chunkRequestStatusList=new HashMap<>(); // 0=empty ,1=requested,2=done
 	boolean runflag=true;
 	
 	boolean readyToSend=true;
@@ -50,7 +50,6 @@ public class ChunkStorageManager implements Runnable{
 	
 	public Chunk getChunk(String chunkID)
 	{
-		
 		if(chunkDB.containsKey(chunkID))
 		{
 			return chunkDB.get(chunkID);
@@ -66,7 +65,7 @@ public class ChunkStorageManager implements Runnable{
 		if(chunksToReqeust.size()>5)
 		{
 			requestNewChunks();
-			log.info("Request new chunks from the server");
+			log.debug("Request new chunks from the server");
 		}
 		
 		return chunkDB.get(chunkID);
@@ -94,17 +93,27 @@ public class ChunkStorageManager implements Runnable{
 		log.info("Start Thread");
 		while (runflag)
 		{
-			if(readyToReceive)
+			if(readyToReceive)		// Test of er ontvangen kan worden
 			{
-			ChunkListRecord chkRec=nwConnector.readChunkListRecord();
+			ChunkListRecord chkRec=nwConnector.readChunkListRecord();	// Oke haal de lijst op
 			
-				if(chkRec!=null)
+				if(chkRec!=null)										// Bevat de lijst gevens?
+				{	
+					for(Chunk chunk:chkRec.list)						// Ja, loop langs alle gegevens
+					{
+						chunkDB.put(chunk.getChunkid(), chunk);						// Voeg ze toe aan de database
+						chunkRequestStatusList.remove(chunk.getChunkid());			// en haal ze weg uit de reqeust list
+					}
+					
+					log.debug("New chunk recieved : "+ chkRec.list.size());
+					log.debug("Chunkdb is "+chunkDB.size());
+					readyToSend=true;		// Er mag weer gestuurd worden naar de server
+					readyToReceive=false;	// En er mag weer even niet ontvangen worden
+				}
+				else
 				{
-					chkRec.list.forEach(chunk -> chunkDB.put(chunk.getChunkid(), chunk) );
-					log.info("New chunk recieved : "+ chkRec.list.size());
-					log.info("Chunkdb is "+chunkDB.size());
-					readyToSend=true;
-					readyToReceive=false;
+					readyToSend=true;		// Er mag weer gestuurd worden naar de server
+					readyToReceive=false;	// En er mag weer even niet ontvangen worden
 				}
 			}
 			

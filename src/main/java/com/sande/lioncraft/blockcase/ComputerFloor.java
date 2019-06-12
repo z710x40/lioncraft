@@ -13,7 +13,8 @@ public class ComputerFloor extends BasicBlock {
 	
 	@Override
 	protected Geometry creatBlock() {
-		Box box = new Box(Globals.CHUNKRADIUS,Globals.BLOCKRADIUS,Globals.CHUNKRADIUS);
+		//Box box = new Box(Globals.CHUNKRADIUS,Globals.BLOCKRADIUS,Globals.CHUNKRADIUS);
+		Box box = new Box(Globals.BLOCKRADIUS,Globals.BLOCKRADIUS,Globals.BLOCKRADIUS);
 		Geometry cubeSpatial = new Geometry("ComputerFloor", box);	
 		Material material = new Material(Globals.assetmanager, "Common/MatDefs/Misc/Unshaded.j3md");
 		material.setTexture("ColorMap",loadTexture("block_images/computerfloor.jpg"));

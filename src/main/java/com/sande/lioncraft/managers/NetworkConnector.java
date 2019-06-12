@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -116,34 +117,41 @@ public class NetworkConnector {
 	 * @return
 	 */
 	public ChunkListRecord readChunkListRecord() {
+		
 		//log.debug("Read chunklist from the network");
 		ByteBuffer inBuffer = ByteBuffer.allocate(8192);								// Maak een readbuffer
 		int total=0;
 		try {
 			ByteArrayOutputStream baos=new ByteArrayOutputStream();						// Maak een outputstream
-			while(timeOutRead(inBuffer,5)>0)											// Loop zolang er data is
+			while(timeOutRead(inBuffer,10)>0)											// Loop zolang er data is
 			{
-				//log.debug("readed bytes "+inBuffer.limit());
+				inBuffer.flip();
+				log.info("readed bytes "+inBuffer.limit());
 				total+=inBuffer.limit();
 				baos.write(inBuffer.array());											// Schrijf de data naar de outputbuffer
 				inBuffer.clear();														// clean de data
 			}
-			//log.debug("total readed bytes is "+total);
+			log.info("total readed bytes is "+total);
 			if(total==0)return null;
 			
 			ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());	// Maak een inputstream op basis van de outputstream
 			ObjectInputStream ois = new ObjectInputStream(bis);							// Converteer deze naar object
 			return (ChunkListRecord) ois.readObject();									// Lees het object in
 
+		}  catch (ClassNotFoundException e) {
+			log.info("ClassNotFoundException. Object size was "+total);
+			e.printStackTrace();
+			return null;
+		} catch (StreamCorruptedException e) {
+			log.info("StreamCorruptedException."+e.getMessage());
+			e.printStackTrace();
+			return null;
 		} catch (IOException e) {
 			log.info("IOException "+e.getMessage());
 			e.printStackTrace();
 			return null;
-		} catch (ClassNotFoundException e) {
-			log.info("ClassNotFoundException. Object size was "+total);
-			e.printStackTrace();
-			return null;
 		}
+		
 	}
 	
 	
@@ -157,8 +165,13 @@ public class NetworkConnector {
 				rc=channel.read(buffer);
 				if(rc!=0)
 				{
-					//log.debug("Bytest read is "+rc);
+					log.info("Bytest read is "+rc);
 					return rc;
+				}
+				if(rc==-1)
+				{
+					log.info("End of stream");
+					return 0;	
 				}
 				Thread.sleep(1);
 			} catch (IOException e) {
@@ -169,7 +182,7 @@ public class NetworkConnector {
 				e.printStackTrace();
 			}
 		}
-		//log.debug("Socket time out after "+timeout+" milliseconds");
+		log.info("Socket time out after "+timeout+" milliseconds");
 		return 0;
 		
 	}

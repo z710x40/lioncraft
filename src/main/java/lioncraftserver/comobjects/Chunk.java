@@ -26,8 +26,17 @@ public class Chunk implements Serializable{
 		this.x=x;
 		this.z=z;
 		
-		Block floor=new Block(x*Globals.chunkblocks,0,z*Globals.chunkblocks,BlockType.COMPUTERFLOOR.getID());
-		blockList.put(floor.getBLockID(), floor);
+		//Block floor=new Block(x*Globals.chunkblocks,0,z*Globals.chunkblocks,BlockType.COMPUTERFLOOR.getID());
+		
+		for(int telx=0;telx<Globals.chunkblocks;telx++)
+		{
+			for(int telz=0;telz<Globals.chunkblocks;telz++)
+			{
+				Block floor=new Block(telx+(x*Globals.chunkblocks),0,telz+(z*Globals.chunkblocks),BlockType.COMPUTERFLOOR.getID());
+				blockList.put(floor.getBLockID(), floor);
+			}
+		}
+		
 	}
 	
 	

@@ -2,19 +2,16 @@ package com.sande.lioncraft.managers;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Logger;
-
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.sande.lioncraft.Globals;
 import com.sande.lioncraft.blockcase.BlockType;
-
 import lioncraftserver.comobjects.Chunk;
-import lioncraftserver.comobjects.ChunkListRecord;
 import lioncraftserver.comobjects.RequestRecord;
 import lioncraftserver.tools.Tools;
+
 
 // Deze class verzorgt de zichtbare chunks
 public class VisibleChunkField {
@@ -40,6 +37,7 @@ public class VisibleChunkField {
 	int visible;
 	
 	ChunkFieldManager chunkFieldManager;
+	
 	
 	private Logger log = Logger.getLogger(this.getClass());
 	
@@ -91,11 +89,8 @@ public class VisibleChunkField {
 		for(String chunkId:chunkFieldManager.getChunkIdToRemoveList())
 		{
 			Chunk chunk=chunkcStorage.getChunk(chunkId);
-			if(chunk!=null)chunk.destruct();
-			
+			if(chunk!=null)chunk.destruct();	
 		}
-		
-		//chunkFieldManager.getChunkIdToRemoveList().forEach(chunkId -> chunkcStorage.getChunk(chunkId).destruct());
 		
 		
 		// Verwijder de geometries die er bij horen
@@ -107,7 +102,14 @@ public class VisibleChunkField {
 			Chunk chunk=chunkcStorage.getChunk(chunkId);
 			if(chunk==null)continue;
 			graphicsManager.buildChunk(chunk);
+			
 		}
+		
+	
+		graphicsManager.addChunksToCollision(chunkFieldManager.getChunkIdToCollideList());
+		
+		
+		
 		log.debug("New build chunk :"+chunkFieldManager.getChunkIdToAddList().size());
 		
 	
@@ -153,22 +155,7 @@ public class VisibleChunkField {
 	}
 
 
-	public void buildMissingChunks() {
-		List<String> missingChunk=chunkFieldManager.getChunksThatAreNotBuild();
-		RequestRecord reqRec=new RequestRecord();
-		reqRec.setRequesttype(1);
-		reqRec.setChunkids(missingChunk);
-		//orderManager.putRequest(reqRec);
-		
-		/*ChunkListRecord chunkRecordList=orderManager.getChunkList();
-		if(chunkRecordList==null)return;
-		for(Chunk chunk:chunkRecordList.list)
-		{
-			graphicsManager.buildChunk(chunk);	
-		}*/
-		
-		
-	}
+
 	
 
 	

@@ -164,16 +164,15 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
         stateManager.attach(bulletAppState);
         
         // Make the character
-        /*CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.0f, 4f, 1);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.0f, 4f, 1);
         player = new CharacterControl(capsuleShape, 0.05f);
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(new Vector3f(0,-30f,0));
         player.setPhysicsLocation(new Vector3f(0, 20, 0));
         Globals.player=player;
-    */
-        //bulletAppState.getPhysicsSpace().add(player);
-        //bulletAppState.setDebugEnabled(true);
+        bulletAppState.getPhysicsSpace().add(player);
+        bulletAppState.setDebugEnabled(true);
         
         
      // Zet een standaard achtergrond lucht
@@ -197,9 +196,6 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 		}
        
          
-        //nwConnector.sendRequest();
-		
-		//nwConnector.readChunkListRecord();
         
         
         NiftyJmeDisplay niftyDisplay = NiftyJmeDisplay.newNiftyJmeDisplay(
@@ -233,19 +229,10 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 		
 		
 		// Update de chunk field
-		boolean result=visibleChunkField.updateChunkField(chunkPosX, chunkPosZ);
-		
-		if(result)
-			{visibleChunkField.buildMissingChunks();
-			 //nwConnector.sendRequest();
-			}
-		
-		//nwConnector.readChunkListRecordOrder();
-		
+		visibleChunkField.updateChunkField(chunkPosX, chunkPosZ);		
 		
 		chunkInfoText.setText(new StringBuilder().append("Chunk ").append(chunkPosX).append('X').append(chunkPosZ).toString());
-		//locationInfoText.setText(new StringBuilder().append("location X:").append(campos.x).append(" Z:").append(campos.z).toString());
-		//System.out.println(" "+campos.x+ " "+campos.z);
+		
 		
 		// Beweeg de player
 		camDir.set(cam.getDirection()).multLocal(0.6f);
@@ -263,25 +250,14 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
         if (down) {
             walkDirection.addLocal(camDir.negate());
         }
-        //player.setWalkDirection(walkDirection);    // moet weer terug voor de beweging
-        //cam.setLocation(player.getPhysicsLocation());
+        
+        player.setWalkDirection(walkDirection);    // moet weer terug voor de beweging
+        cam.setLocation(player.getPhysicsLocation());
 	}
 	
 	
 	
-	
-/*	public List<String> getLocalChunkField(int chunkPosX, int chunkPosZ)
-	{
-		List<String> chunckFieldList=new ArrayList<>();
-		for(int x=-Globals.chunkFieldSize;x<Globals.chunkFieldSize;x++)
-		{
-			for(int z=-Globals.chunkFieldSize;z<Globals.chunkFieldSize;z++)
-			{
-				chunckFieldList.add(new StringBuilder().append(chunkPosX+x).append('X').append(chunkPosZ+z).toString());
-			}
-		}		
-		return chunckFieldList;
-	}*/
+
 	
 	
 	public void initKeys()
