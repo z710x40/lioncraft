@@ -29,8 +29,8 @@ import com.jme3.util.SkyFactory;
 import com.sande.lioncraft.blockcase.BlockType;
 import com.sande.lioncraft.dbconnector.DbConnector;
 import com.sande.lioncraft.managers.ChunkStorageManager;
-import com.sande.lioncraft.managers.NetworkConnector;
 import com.sande.lioncraft.managers.VisibleChunkField;
+import com.sande.lioncraft.managers.networking.NetworkConnector;
 import com.sande.lioncraft.storage.ChunkOrg;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.elements.Element;
@@ -81,8 +81,6 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		
 		LionCraft lioncraft=new LionCraft();
 		lioncraft.init();
 		lioncraft.start();
@@ -92,7 +90,7 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 	
 	private void init() {
 		nwConnector=NetworkConnector.getConnector();
-		if(!nwConnector.connect("192.168.178.20", 2016))
+		if(!nwConnector.connect("192.168.178.23", 2016))
 			{
 			 System.out.println("Cannot connect to the lioncraft server");
 			 System.exit(1);
@@ -103,13 +101,14 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
 
 	@Override
 	public void simpleInitApp() {
-		// TODO Auto-generated method stub
 		System.out.println("Init graphical engine");
 		Globals.assetmanager=this.assetManager;
 		flyCam.setMoveSpeed(50);
 		initKeys();
 		
 		
+		
+		// Maak een connectie met de database
 		DbConnector dbConnect=new DbConnector(Globals.chunkblocks);
 		Globals.database=dbConnect;
 		Globals.rootNode=rootNode;
@@ -172,7 +171,7 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
         player.setPhysicsLocation(new Vector3f(0, 20, 0));
         Globals.player=player;
         bulletAppState.getPhysicsSpace().add(player);
-        bulletAppState.setDebugEnabled(true);
+        //bulletAppState.setDebugEnabled(true);
         
         
      // Zet een standaard achtergrond lucht
@@ -186,8 +185,11 @@ public class LionCraft extends SimpleApplication implements ActionListener,Scree
      	getRootNode().attachChild(defaultSky);
      	System.out.println("Init done, ready to place the first block");
         
+     	// Maak het chunkfield, or place all the blocks
         visibleChunkField=new VisibleChunkField(rootNode);
         visibleChunkField.updateChunkField(0, 0);
+        
+        // Give it a little time to build
         try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {

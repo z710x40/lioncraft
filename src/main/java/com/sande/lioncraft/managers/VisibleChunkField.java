@@ -23,9 +23,8 @@ public class VisibleChunkField {
 	int currentChunkX=1;		// Het huidige centrale chuckField
 	int currentChunkZ=1;
 	
-	ChunkStorageManager chunkcStorage=ChunkStorageManager.getChunkStorage();	// De centrale chunk database
-	GraphicsManager graphicsManager=GraphicsManager.getInstance(Globals.rootNode);
-	//NetworkConnector nwConnector;
+	ChunkStorageManager chunkcStorage=ChunkStorageManager.getChunkStorage();		// De centrale chunk database
+	GraphicsManager graphicsManager=GraphicsManager.getInstance(Globals.rootNode);	
 	BlockManager blockManager=BlockManager.GetBlockManager();
 	Node rootNode;
 	
@@ -44,14 +43,10 @@ public class VisibleChunkField {
 	
 	public VisibleChunkField(Node rootNode) 
 	{
-		//nwConnector=NetworkConnector.getConnector();	// Init de connector
 		visible=Globals.chunkFieldSize;					// aantal zichtbare chunks rondom het centrale punt van de camera
 		this.rootNode=rootNode;
-		
 		chunkFieldManager=new ChunkFieldManager(Globals.chunkFieldSize);
 		updateChunkField(0, 0);
-		
-		
 		
 	}
 	
@@ -59,7 +54,7 @@ public class VisibleChunkField {
 	// Make an update of the chunk field
 	public boolean updateChunkField(int x, int z)	// Geef het huidige chunkfield mee
 	{
-		
+		log.debug("Update chunkfield");
 		List<String> rootChunkIdList=graphicsManager.getCurrentChunkIdList();
 		for(String chunkId:chunkFieldManager.getCurrentChunkIdList())
 			{

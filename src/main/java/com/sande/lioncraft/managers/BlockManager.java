@@ -18,7 +18,7 @@ import com.sande.lioncraft.blockcase.TextBlock;
 public class BlockManager {
 
 	
-	private static BlockManager INSTANCE;
+	private static BlockManager INSTANCE=new BlockManager();
 	
 	TestBlock testBlock=new TestBlock();
 	ComputerFloor computerFloor=new ComputerFloor();
@@ -54,10 +54,6 @@ public class BlockManager {
 	
 	public static BlockManager GetBlockManager()
 	{
-		if(INSTANCE==null)
-		{
-			INSTANCE=new BlockManager();
-		}
 		return INSTANCE;
 	}
 

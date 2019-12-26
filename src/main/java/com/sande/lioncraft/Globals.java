@@ -20,7 +20,7 @@ public class Globals {
 	public final static float    CHUNKRADIUS=BLOCKRADIUS*chunkblocks;	    // Absolute lengte blokken
 	public final static float    CHUNKSIZE=CHUNKRADIUS*2;
 	
-	public final static int      chunkFieldSize=16;						// Aantal zichtbare chunks
+	public final static int      chunkFieldSize=8;						// Aantal zichtbare chunks
 	
 	public final static Vector3f offset=new Vector3f(Globals.BLOCKRADIUS,Globals.BLOCKRADIUS,Globals.BLOCKRADIUS);					// Offset middelpunt block zit in het midden
 	public final static float flooroffset=CHUNKRADIUS/2-BLOCKRADIUS;	// FloorBock middelpunt block zit in het midden

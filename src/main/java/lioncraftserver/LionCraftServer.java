@@ -3,19 +3,13 @@ package lioncraftserver;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
-import java.util.Iterator;
 import org.apache.log4j.Logger;
 import lioncraftserver.comobjects.ChunkListRecord;
 import lioncraftserver.comobjects.RequestRecord;
@@ -25,19 +19,14 @@ import lioncraftserver.tools.WorldGenerator;
 public class LionCraftServer {
 
 	
-	Selector selector ; // selector is open here
-	ServerSocketChannel lionSrvSocketChannel;
-	InetSocketAddress lionSrvSocketAddr;
-	ServerSocket lionServerSocket;
-	ByteBuffer myBuffer = ByteBuffer.allocate(8192);
 	InetAddress adres;
     int port;
-    ServerSocketChannel serverSocketChannel;
+    
     Processors processor=new Processors();					// processor processes incoming requests
    // ChunkStorage chunkStorage;
    
     private Logger log = Logger.getLogger(this.getClass());
-    
+    private DatagramSocket serverUDPSocket;
     
 
     boolean runflag=true;
@@ -45,21 +34,21 @@ public class LionCraftServer {
 	public LionCraftServer() throws IOException {
 		port=2016;
 		adres=InetAddress.getLocalHost();
+		
+		serverUDPSocket=new DatagramSocket(port);
 	}
 	
 	public static void main(String argv[]) throws IOException, ClassNotFoundException
 	{
-		
-		
 		LionCraftServer lioncraftserver=new LionCraftServer();
-		lioncraftserver.initDatabase();							// Start the databases
-		lioncraftserver.initServer();							// Start the server
-		lioncraftserver.runServer();							// Start listening for connections and handle them
-		
+		lioncraftserver.initDatabase();			// Start the databases
+		lioncraftserver.runUDPServer();			// Start de UDP server
 	}
 
 
 	
+	
+
 	private void initDatabase() {
 		//chunkStorage=ChunkStorage.getChunkStorage();
 		WorldGenerator wg=new WorldGenerator();
@@ -70,55 +59,61 @@ public class LionCraftServer {
 
 	
 	
-	private void initServer() 
-	{
-		try {
-			selector = SelectorProvider.provider().openSelector();
-			serverSocketChannel = ServerSocketChannel.open();
-			serverSocketChannel.configureBlocking(false);
-			InetSocketAddress inet = new InetSocketAddress(adres, port);
-			serverSocketChannel.socket().bind(inet);
-			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-			log.info("Server ready listen on "+adres.getHostAddress()+" at port "+port);
-			log.info("Ready to accept incoming connections");
+	
+	
+	
+	private void runUDPServer() {
 
-		} catch (IOException e) {
-			log.info("IOException "+e.getMessage());
-			e.printStackTrace();
-			System.exit(2);
+		
+		log.info("Start the UDP server");
+		byte[] receiveData = new byte[16*1024];
+		boolean endofrecord=false;
+		
+		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+		
+		while (runflag) {
+			try {
+				
+				endofrecord=false;
+				ByteArrayOutputStream baos=new ByteArrayOutputStream();
+				while(!endofrecord)
+				{
+					serverUDPSocket.receive(receivePacket);
+					receiveData= receivePacket.getData();
+					if(receiveData[0]==0)endofrecord=true;
+					baos.write(receiveData, 4, receiveData.length-4);
+				}
+				
+				
+				ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());
+				baos.close();
+				ObjectInputStream ois = new ObjectInputStream(bis);
+				RequestRecord readedObject = (RequestRecord) ois.readObject();
+				log.debug("Reqeust type is " + readedObject.getRequesttype());
+				ois.close();
+				bis.close();
+				
+				log.debug("Send response, Chunk is " + readedObject.getChunkids());
+				writeUDP(receivePacket.getAddress(),receivePacket.getPort(),processor.getChunksFromList(readedObject.getChunkids()));
+				
+				
+			} catch (EOFException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	
-	private void runServer() {
-		log.info("Start the lioncrate server process");
-		while (runflag) {
-			int rc = 0;
-			try {
-				rc = selector.select();
-				// System.out.println("there are "+rc+" selectors");
+	
 
-				Iterator<SelectionKey> selectedKeys = this.selector.selectedKeys().iterator();
-				while (selectedKeys.hasNext()) {
-					SelectionKey key = (SelectionKey) selectedKeys.next();
-					selectedKeys.remove();
-
-					if (!key.isValid()) {
-						log.debug("Invalid key "+key);
-						continue;
-					}
-
-					if (key.isAcceptable()) {
-						log.debug("key is accepted");
-						accept(key);
-
-					} else if (key.isReadable()) {
-						RequestRecord ra=read(key);
-						if(ra!=null)
-						{
-							log.debug("Received request type "+ra.getRequesttype());
-							switch(ra.getRequesttype())
-							{
+							//switch(ra.getRequesttype())
+							/*{
 								case 1: log.debug("Process Request type 1");
 									    write(key,processor.getChunksFromList(ra.getChunkids()));
 										break;
@@ -129,19 +124,8 @@ public class LionCraftServer {
 								case 4: log.debug("Get chunk "+ra.getChunkid());
 									    write(key,processor.getSingleChunk(ra.getChunkid()));
 										break;
-							}
-						}
-						
+							}*/
 
-					}
-				}
-
-			} catch (IOException e) {
-				log.info("IOException "+e.getMessage());
-				e.printStackTrace();
-			}
-		}
-	}
 
 	
 	/**
@@ -149,116 +133,43 @@ public class LionCraftServer {
 	 * @param key
 	 * @param chunksFromList
 	 */
-	private void write(SelectionKey key,Object record) {
+	private void writeUDP(InetAddress requesterAddr,int requesterPort, ChunkListRecord chunk) {
 		log.debug("Write object to client system ");
-		SocketChannel channel=(SocketChannel) key.channel();
-		if(!channel.isOpen())
-		{
-			log.debug("Error, channel is closed");
-			return;
-		}
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		try {
-			ChunkListRecord chunk=(ChunkListRecord) record;
-			ObjectOutputStream oos = new ObjectOutputStream(bos);
-			oos.writeObject(chunk);
-			int rc=channel.write(ByteBuffer.wrap(bos.toByteArray()));
-			log.debug("Write "+rc+" bytes");
-		} catch (IOException e) {
-			log.debug("IOException "+e.getMessage());
-			e.printStackTrace();
-		}
-		
-	}
+		int datasize=512;
+		int metadatasize=4;
 
-	
-	
-	private RequestRecord read(SelectionKey key) throws IOException {
-		log.debug("Read data from the network");
-		RequestRecord ra=null;
-		ByteBuffer readBuffer = ByteBuffer.allocate(8192);
-		SocketChannel readSocket = (SocketChannel) key.channel();
-		ByteArrayOutputStream baos=new ByteArrayOutputStream();
-		int readbytes = 0;
-		int rc=0;
-		
 		try {
-			while((rc=readSocket.read(readBuffer))>0)
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream oos;
+			oos = new ObjectOutputStream(baos);
+			oos.writeObject(chunk);
+			byte[] sendData = new byte[metadatasize+datasize];
+			DatagramPacket sendpackage=new DatagramPacket(sendData,sendData.length,requesterAddr,requesterPort);
+			ByteArrayInputStream bais=new ByteArrayInputStream(baos.toByteArray());
+			int bytesreaded=0;
+			boolean loopflag=true;
+			while(loopflag)
 			{
-				log.debug("Received bytes "+rc);
-				baos.write(readBuffer.array());
-				readbytes+=rc;
-				readBuffer.clear();
+				bytesreaded=bais.read(sendData,metadatasize,datasize);
+				if(bytesreaded<datasize)
+					{sendData[0]=0;						// Dit is een eind record
+					loopflag=false;
+					}
+				else 
+					{sendData[0]=1;											// record heeft een vervolg
+					}
+				
+				sendpackage.setData(sendData);
+				serverUDPSocket.send(sendpackage);
 			}
 		} catch (IOException e) {
-
-			log.info("Cannot read from socket");
-			//key.cancel();
-			readSocket.close();
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			baos.close();
-			return null;
-		}
-
-		if (readbytes == -1) {
-			log.info("End of record, close socket");
-			//key.channel().close();
-			//key.cancel();
-			baos.close();
-			return null;
-		}
-		log.debug("Object received size is "+readbytes);
-		
-		ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());
-		ObjectInputStream ois = new ObjectInputStream(bis);
-		Object readedObject = null;
-		try {
-			readedObject = ois.readObject();
-		} catch (ClassNotFoundException e) {
-			log.debug("ClassNotFoundException received is "+e.getMessage());
-			e.printStackTrace();
-			key.channel().close();
-			//key.cancel();
-			baos.close();
 		}
 		
-		if(readedObject instanceof RequestRecord)
-		{
-			log.debug("Object received is instance of RequestRecord");
-			ra = (RequestRecord) readedObject;
-			//key.channel().close();
-			//key.cancel();
-			baos.close();
-			return ra;
-		}
-		else
-		{log.debug("Object received is invalid"+readedObject);
-		}
-		//wwwwwwwkey.channel().close();
-		//key.cancel();
-		baos.close();
-		return null;
-	}
-
-
-
-	private void accept(SelectionKey key) {
-		ServerSocketChannel newServerSocketChannel = (ServerSocketChannel) key.channel();
-
-		try {
-			SocketChannel socketChannel = newServerSocketChannel.accept();
-			socketChannel.configureBlocking(false);
-			socketChannel.register(selector, SelectionKey.OP_READ);
-			log.info("Connection accepted from "+socketChannel.getRemoteAddress());
-		} catch (IOException e) {
-			log.info("Failed to select the incoming selection");
-			e.printStackTrace();
-		}
+		log.debug("Data written, total is "+chunk.list.size());
 
 	}
-	
-	
-   
-	
-	
+		
+
 }

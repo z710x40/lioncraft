@@ -9,10 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
-
-import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
@@ -25,9 +22,14 @@ import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
 import com.sande.lioncraft.Globals;
 import com.sande.lioncraft.blockcase.BlockType;
-
 import lioncraftserver.comobjects.Chunk;
 
+
+/**
+ * This class maintains the graphica chunks and manages the block in the chunks
+ * @author Erwin
+ *
+ */
 public class GraphicsManager {
 
 	
@@ -83,6 +85,7 @@ public class GraphicsManager {
 	}
 	
 	
+	// Remove a chunk
 	public void removeChunk(String chunkId)
 	{
 		tempNode=chunkNodeList.get(chunkId);

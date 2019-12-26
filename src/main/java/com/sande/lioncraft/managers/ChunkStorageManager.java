@@ -7,22 +7,28 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.sande.lioncraft.managers.networking.NetworkConnector;
+
 import lioncraftserver.comobjects.Chunk;
 import lioncraftserver.comobjects.ChunkListRecord;
 import lioncraftserver.comobjects.RequestRecord;
 
 
+
+/**
+ * Manager for all the chunks
+ * @author Erwin
+ *
+ */
 public class ChunkStorageManager implements Runnable{
 
-	private static ChunkStorageManager instance;
+	private static ChunkStorageManager INSTANCE=new ChunkStorageManager();;
 	Map<String,Chunk> chunkDB=new HashMap<>();							// De ChunkStorage
 	NetworkConnector nwConnector =NetworkConnector.getConnector();
 	private List<String> chunksToReqeust=new ArrayList<>();
 	private Map<String,Integer> chunkRequestStatusList=new HashMap<>(); // 0=empty ,1=requested,2=done
 	boolean runflag=true;
 	
-	boolean readyToSend=true;
-	boolean readyToReceive=false;
 	
 	private Logger log = Logger.getLogger(this.getClass());
 	
@@ -33,12 +39,7 @@ public class ChunkStorageManager implements Runnable{
 	
 	public static ChunkStorageManager getChunkStorage()
 	{
-		if(instance==null)
-		{
-			instance=new ChunkStorageManager();
-		}
-		
-		return instance;
+		return INSTANCE;
 	}
 	
 	
@@ -62,7 +63,7 @@ public class ChunkStorageManager implements Runnable{
 		
 		chunksToReqeust.add(chunkID);
 		chunkRequestStatusList.put(chunkID, 1);
-		if(chunksToReqeust.size()>5)
+		if(chunksToReqeust.size()>2)
 		{
 			requestNewChunks();
 			log.debug("Request new chunks from the server");
@@ -72,62 +73,41 @@ public class ChunkStorageManager implements Runnable{
 	}
 	
 	
-	private void requestNewChunks()
-	{
-		if(this.readyToSend)
-		{
-			RequestRecord rr=new RequestRecord();
-			rr.setRequesttype(1);
-			rr.setChunkids(chunksToReqeust);
-			nwConnector.writeRecord(rr);
-			chunksToReqeust.clear();
-			readyToSend=false;
-			readyToReceive=true;
-		}
-		
+	private void requestNewChunks() {
+
+		RequestRecord rr = new RequestRecord();
+		rr.setRequesttype(1);
+		rr.setChunkids(chunksToReqeust);
+		log.debug("Request chunks " + chunksToReqeust);
+		nwConnector.writeUDPRecord(rr);
+		chunksToReqeust.clear();
+
 	}
 
 	@Override
 	public void run() {
 
-		log.info("Start Thread");
+		log.info("Start ChunkStorage Thread");
 		while (runflag)
 		{
-			if(readyToReceive)		// Test of er ontvangen kan worden
-			{
 			ChunkListRecord chkRec=nwConnector.readChunkListRecord();	// Oke haal de lijst op
-			
-				if(chkRec!=null)										// Bevat de lijst gevens?
+			if(chkRec!=null)										// Bevat de lijst gevens?
 				{	
 					for(Chunk chunk:chkRec.list)						// Ja, loop langs alle gegevens
 					{
 						chunkDB.put(chunk.getChunkid(), chunk);						// Voeg ze toe aan de database
 						chunkRequestStatusList.remove(chunk.getChunkid());			// en haal ze weg uit de reqeust list
 					}
-					
 					log.debug("New chunk recieved : "+ chkRec.list.size());
 					log.debug("Chunkdb is "+chunkDB.size());
-					readyToSend=true;		// Er mag weer gestuurd worden naar de server
-					readyToReceive=false;	// En er mag weer even niet ontvangen worden
+					
 				}
-				else
-				{
-					readyToSend=true;		// Er mag weer gestuurd worden naar de server
-					readyToReceive=false;	// En er mag weer even niet ontvangen worden
-				}
-			}
-			
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			//log.info(chunkRequestStatusList);
+
 		}
 	}
 
+	
+	
 	public void endThread() {
 		runflag=false;
 		

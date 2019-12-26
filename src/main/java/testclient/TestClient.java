@@ -2,7 +2,7 @@ package testclient;
 
 import java.net.InetAddress;
 import com.sande.lioncraft.managers.ChunkFieldManager;
-import com.sande.lioncraft.managers.NetworkConnector;
+import com.sande.lioncraft.managers.networking.NetworkConnector;
 
 import lioncraftserver.comobjects.RequestRecord;
 
